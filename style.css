@@ -9,6 +9,11 @@ section {
     margin-bottom: 20px;
     background-color: #f2f2f2;
 }
+
+table td {
+    padding-right: 1em;
+}
+
 /*
 footer {
     background-color: #333;
