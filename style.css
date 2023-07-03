@@ -1,48 +1,40 @@
-body {
-    font-family: Verdana, sans-serif;
-    margin: 0;
-    padding: 0;
+@import url(https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600);
+html {
+    padding: 2em;
+    background: white;
 }
 
-section {
-    padding: 40px;
-    margin-bottom: 20px;
-    background-color: #f2f2f2;
+body {
+    font: 90% 'Source Sans Pro', Verdana, Arial;
+    margin: auto;
+    color: rgb(74, 74, 74);
+    max-width: 50em;
+    width: 100%;
 }
+
+a {
+    border-bottom: none;
+    text-decoration: none;
+    color: rgb(0, 68, 177);
+}
+
+a:hover {
+    color: rgb(0, 68, 177);
+    text-decoration: underline;
+}
+
+/* section {
+    /* padding: 2em; */
+    /* margin-bottom: em;
+    background-color: #f2f2f2;
+} */
 
 table td {
     padding-right: 1em;
 }
 
-/*
 footer {
-    background-color: #333;
-    color: #fff;
-    padding: 20px;
-    text-align: center;
+	border-top: 1px solid #e0e0e0;
+    font-size: 80%;
+    padding-bottom: none;
 }
-
-/* Contact section styles */
-
-/* name {
-    background-color: #f9f9f9;
-    color: #333;
-}
-    
-contact {
-    background-color: #fff;
-    color: #333;
-} */
-
-/* Experience section styles */
-/* experience {
-    background-color: #f9f9f9;
-    color: #333;
-} */
-
-/* Blog section styles */
-/*
-blog {
-    background-color: #fff;
-    color: #333;
-} */
