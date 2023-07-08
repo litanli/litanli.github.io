@@ -57,9 +57,9 @@
         <p>
 
             The KL divergence of distribution $p$ from $q$ is a measure of dissimilarity,
-            taken as the expectation of the log difference and using $p(x)$ as the weighting function. 
-            In Bayesian inference, the KL divergence is often used as a measure of the divergence
-            of a posterior $p$ from some prior $q$.<br><br>
+            taken as the expectation of the log difference and using $p(x)$ as the weighting function.
+            It's used a lot in Bayesian inference (specifically, the divergence of a posterior $p$ 
+            from some prior $q$), so I'm listing some properties and closed-form equations here.<br><br>
 
             For discrete distributions over sample space $\mathcal{X}$, we have:
 
@@ -89,10 +89,10 @@
             <li>
                 $D_{KL}(p||q) = 0$ if and only if $p=q$. <br><br>
 
-                If $p=q$ then $\log p(x)/q(x) = \log(1) = 0$ 
+                If $p=q$ then $\log p(x)/q(x) = \log(1) = 0$
                 for all $x$ and $D_{KL}(p||q)=0$. The proof of the forward implication
                 is a little bit trickier.
-                
+
             </li><br>
             <li>
                 Non-negativity ($D_{KL} \geq 0$).<br><br>
@@ -100,39 +100,39 @@
                 Since $\log(a) \leq a-1$ for all $a > 0$, we have:<br>
 
                 \begin{align}
-                    D_{KL}(p||q)&=-\sum p(x) \log \left(\frac{q(x)}{p(x)}\right) \tag{Invert the log} \\
-                    &\geq -\sum p(x)\left(\frac{q(x)}{p(x)} - 1\right) \tag{letting $a=q/p$} 
+                D_{KL}(p||q)&=-\sum p(x) \log \left(\frac{q(x)}{p(x)}\right) \tag{Invert the log} \\
+                &\geq -\sum p(x)\left(\frac{q(x)}{p(x)} - 1\right) \tag{letting $a=q/p$}
                 \end{align}
 
                 The right hand side is equal to zero, which completes the proof:
                 \begin{align}
                 -\sum p(x)\left(\frac{q(x)}{p(x)} - 1\right) &=-\sum q(x) + \sum p(x) \tag*{}\\
-                    &=-1 + 1 \tag*{}\\
-                    &=0 \tag*{}\\
-                    D_{KL}(p||q) &\geq 0 \tag*{}
+                &=-1 + 1 \tag*{}\\
+                &=0 \tag*{}\\
+                D_{KL}(p||q) &\geq 0 \tag*{}
                 \end{align}
             </li><br>
             <li>
                 However the KL divergence is asymmetric.
-                
+
                 \begin{equation}
-                    \tag*{}
-                    D_{KL}(p||q) \neq D_{KL}(q||p)
+                \tag*{}
+                D_{KL}(p||q) \neq D_{KL}(q||p)
                 \end{equation}
-                
+
             </li><br>
             <li>
                 And it doesn't satisfy the triangle inequality.
 
                 \begin{equation}
-                    \tag*{}
-                    D_{KL}(p||r) \nleq D_{KL}(p||q) + D_{KL}(q||r) \text{ for all distributions $p$, $q$ and $r$} 
+                \tag*{}
+                D_{KL}(p||r) \nleq D_{KL}(p||q) + D_{KL}(q||r) \text{ for all distributions $p$, $q$ and $r$}
                 \end{equation}
             </li><br>
         </ol>
         <p>
-            <b>Remark</b>: Due to the last two properties, the KL divergence doesn't qualify as a distance metric, 
-            which is why it's called the KL <i>divergence</i>. Also, because of asymmetry, we usually say that 
+            <b>Remark</b>: Due to the last two properties, the KL divergence doesn't qualify as a distance metric,
+            which is why it's called the KL <i>divergence</i>. Also, because of asymmetry, we usually say that
             $D_{KL}(p||q)$ is the "divergence of $p$ from $q$" rather than "between $p$ and $q$".
         </p>
 
@@ -144,10 +144,71 @@
         <h3>Some Useful Results</h3>
 
         <p>
-            The KL divergence of a Gaussian from another commonly shows up in Bayesian variational inference. 
-            We list closed form expressions for univariate and multivariate, as well as
-            for the special case of an isotropic Gaussian posterior from the standard normal prior.
+            In variational Bayesian inference we often encounter the KL divergence of a Gaussian 
+            from another Gaussian. As you'd expect, the algebra works out nicely to closed-formed 
+            equations. I'm writing them here for the univariate (3) and multivariate (4) case; and 
+            for the special case of an isotropic Gaussian posterior from a standard normal prior (5),
+            and from a uniform prior (6).
         </p>
+
+
+        <subsection>
+            <p>
+                $\underline{
+                p(x)=N(\mu_0, \sigma_0^2), q(x)=N(\mu_1, \sigma_1^2)
+                }$
+            </p>
+            <p>
+                \begin{align}
+                \tag*{}
+                D_{KL}(p||q) &= \int_{-\infty}^{\infty} p(x)\log\left(\frac{p(x)}{q(x)}\right)dx
+                = \int_{-\infty}^{\infty} p(x)\log p(x) dx
+                - \int_{-\infty}^{\infty} p(x)\log q(x) dx \\
+                
+                &=\int_{-\infty}^{\infty} p(x)\log\left(\frac{p(x)}{q(x)}\right)dx
+
+
+                \end{align}
+            </p>
+            
+        </subsection>
+
+        <subsection>
+            <p>
+                $\underline{
+                p(\bold{x})=N(\bold{\mu_0}, \bold{\Sigma_0}), q(\bold{x})=N(\bold{\mu_1}, \bold{\Sigma_1})
+                }$
+            </p>
+        </subsection>
+
+        <subsection>
+            <p>
+                $\underline{
+                p(\bold{x})=N(\bold{\mu}, diag(\sigma_1^2, ..., \sigma_n^2)), q(\bold{x})=N(\bold{0}, I)
+                }$
+            </p>
+        </subsection>
+            
+
+        <subsection>
+            <p>
+                $\underline{
+                p(\bold{x})=N(\bold{\mu}, diag(\sigma_1^2, ..., \sigma_n^2)), q(\bold{x})=U(a, b)
+                }$
+            </p>
+        </subsection>
+
+
+        
+
+        
+
+
+
+
+
+
+
 
 
 
