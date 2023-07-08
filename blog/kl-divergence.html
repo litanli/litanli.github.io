@@ -1,124 +1,163 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
 
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" type="text/css" href="../style.css" />
+<head>
 
-        <!-- KaTeX -->
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn" crossorigin="anonymous">
-        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" integrity="sha384-cpW21h6RZv/phavutF+AuVYrr+dA8xD9zs6FwLpaCct6O9ctzYFfFr4dgmgccOTx" crossorigin="anonymous"></script>
-        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
-        <script>
-            document.addEventListener("DOMContentLoaded", function() {
-                renderMathInElement(document.body, {
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="../style.css" />
+
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+        integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"
+        integrity="sha384-cpW21h6RZv/phavutF+AuVYrr+dA8xD9zs6FwLpaCct6O9ctzYFfFr4dgmgccOTx"
+        crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+        integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05"
+        crossorigin="anonymous"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            renderMathInElement(document.body, {
                 // customised options
                 // • auto-render specific keys, e.g.:
                 delimiters: [
-                    {left: '$$', right: '$$', display: true},
-                    {left: '$', right: '$', display: false},
-                    {left: '\\(', right: '\\)', display: false},
-                    {left: '\\[', right: '\\]', display: true}
+                    { left: '$$', right: '$$', display: true },
+                    { left: '$', right: '$', display: false },
+                    { left: '\\(', right: '\\)', display: false },
+                    { left: '\\[', right: '\\]', display: true },
+                    { left: "\\begin{equation}", right: "\\end{equation}", display: true },
+                    { left: "\\begin{align}", right: "\\end{align}", display: true },
+                    { left: "\\begin{alignat}", right: "\\end{alignat}", display: true },
+                    { left: "\\begin{gather}", right: "\\end{gather}", display: true },
+                    { left: "\\begin{CD}", right: "\\end{CD}", display: true },
                 ],
                 // • rendering keys, e.g.:
-                throwOnError : false
-                });
+                throwOnError: false
             });
-        </script>
+        });
+    </script>
 
 
-        <title>Useful KL Divergence Results</title>
+    <title>Useful KL Divergence Results</title>
 
-    </head>
-    <body>
-        <a class="button" href="../index.html">
-            <button>Home</button>
-        </a>
+</head>
 
-        <section id="title">
-            <h1>Useful KL Divergence Results</h1>
-        </section>
-        <hr>
+<body>
+    <a class="button" href="../index.html">
+        <button>Home</button>
+    </a>
 
-        <section id="intro">
-            <p>
+    <section id="title">
+        <h1>Useful KL Divergence Results</h1>
+    </section>
+    <hr>
+
+    <section id="intro">
+        <p>
+
+            The KL divergence of distribution $p$ from $q$ is a measure of dissimilarity,
+            taken as the expectation of the log difference and using $p(x)$ as the weighting function. 
+            In Bayesian inference, the KL divergence is often used as a measure of the divergence
+            of a posterior $p$ from some prior $q$.<br><br>
+
+            For discrete distributions over sample space $\mathcal{X}$, we have:
+
+
+            \begin{equation}
+            D_{KL}(p||q) = E_{x\sim p(x)}\left[\log\left(\frac{p(x)}{q(x)}\right)\right]= \sum_{x \in \mathcal{X}}
+            p(x)\log\left(\frac{p(x)}{q(x)}\right)
+            \end{equation}
+
+            whereas for continuous distributions we have the integral:
+
+            \begin{equation}
+            D_{KL}(p||q) = \int_{-\infty}^{\infty} p(x)\log\left(\frac{p(x)}{q(x)}\right)dx
+            \end{equation}
+
+            </ul>
+        </p>
+
+    </section>
+
+    <hr>
+
+    <section>
+        <h3>Properties</h3>
+
+        <ol>
+            <li>
+                $D_{KL}(p||q) = 0$ if and only if $p=q$. <br><br>
+
+                If $p=q$ then $\log p(x)/q(x) = \log(1) = 0$ 
+                for all $x$ and $D_{KL}(p||q)=0$. The proof of the forward implication
+                is a little bit trickier.
                 
-                The KL divergence between distributions $p(x)$ and $q(x)$ is a measure of dissimilarity, 
-                taken as the expectation of the log difference, using $p(x)$ as the weighting function.<br><br>
-              
-            
-                For discrete distributions over sample space $\mathcal{X}$, we have:
-    
+            </li><br>
+            <li>
+                Non-negativity ($D_{KL} \geq 0$).<br><br>
+
+                Since $\log(a) \leq a-1$ for all $a > 0$, we have:<br>
+
+                \begin{align}
+                    D_{KL}(p||q)&=-\sum p(x) \log \left(\frac{q(x)}{p(x)}\right) \tag{Invert the log} \\
+                    &\geq -\sum p(x)\left(\frac{q(x)}{p(x)} - 1\right) \tag{letting $a=q/p$} 
+                \end{align}
+
+                The right hand side is equal to zero, which completes the proof:
+                \begin{align}
+                -\sum p(x)\left(\frac{q(x)}{p(x)} - 1\right) &=-\sum q(x) + \sum p(x) \tag*{}\\
+                    &=-1 + 1 \tag*{}\\
+                    &=0 \tag*{}\\
+                    D_{KL}(p||q) &\geq 0 \tag*{}
+                \end{align}
+            </li><br>
+            <li>
+                However the KL divergence is asymmetric.
                 
-                $$
-                D_{KL}(p||q) = E_{x\sim p(x)}\left[\log\left(\frac{p(x)}{q(x)}\right)\right]= \sum_{x \in \mathcal{X}} p(x)\log\left(\frac{p(x)}{q(x)}\right) \tag{1}
-                $$
-
-                whereas for continuous distributions we have the integral:
-
-                $$D_{KL}(p||q) = \int_{-\infty}^{\infty} p(x)\log\left(\frac{p(x)}{q(x)}\right)dx \tag{2}$$
-                </ul>
-            </p>
-
-        </section>
-        <hr>
-        <section>
-            <h3>Properties</h3>
-    
-            <ol>
-                <li>
-                    If $p$ and $q$ are exactly the same, then $\log p/q = \log(1) = 0$ for all $x$ and $D_{KL}(p||q)=0$. This is the lower bound.
-                </li><br>
-                <li>
-                    In general the KL divergence is non-negative ($D_{KL} \geq 0$).<br><br>
-                    <b>Proof</b><br><br>
-                    If $p=q$, then $D_{KL}=0$ by property 1. <br><br>
-                    Otherwise $p \neq q$. Since $\log(a) \leq a-1$ for all $a > 0$, we have:<br><br>
-                    
-                    
-                    $$D_{KL}(p||q)=-\sum p(x) \log \left(\frac{q(x)}{p(x)}\right) \text{(Invert the log)}$$<br> 
-                    $$\geq -\sum p(x)\left(\frac{q(x)}{p(x)} - 1\right) \text{(letting $a=q/p$)}$$<br> 
-                    
-                    $$=-\sum q(x) + \sum p(x)$$<br>
-                    $$=-1 + 1 \text{(probability distributions sum to 1)}$$ <br>
-                    $$=0$$
-                    $$D_{KL} \geq 0$$
-
-                    
-                        
-                </li>
-
-
-            </ol>
+                \begin{equation}
+                    \tag*{}
+                    D_{KL}(p||q) \neq D_{KL}(q||p)
+                \end{equation}
                 
-            
+            </li><br>
+            <li>
+                And it doesn't satisfy the triangle inequality.
+
+                \begin{equation}
+                    \tag*{}
+                    D_{KL}(p||r) \nleq D_{KL}(p||q) + D_{KL}(q||r) \text{ for all distributions $p$, $q$ and $r$} 
+                \end{equation}
+            </li><br>
+        </ol>
+        <p>
+            <b>Remark</b>: Due to the last two properties, the KL divergence doesn't qualify as a distance metric, 
+            which is why it's called the KL <i>divergence</i>. Also, because of asymmetry, we say that $D_{KL}(p||q)$
+            is the "divergence of $p$ from $q$"" rather than "between $p$ and $q$".
+        </p>
+
+    </section>
+
+    <hr>
+
+    <section>
+        <h3>Some Useful Results</h3>
+
+        <p>
+            The KL divergence between two Gaussians commonly shows up in Bayesian variational inference. 
+            We show closed form expressions for univariate and multivariate, as well as
+            for the special case of an isotropic Gaussian from the standard normal.
+        </p>
 
 
-            
-                <p>
-                    \begin{equation}
-                        \begin{aligned}
-                            x &= y + z \\
-                            a &= b - c
-                        \end{aligned}
-                    \end{equation}
-                </p>
-            
 
-        </section><hr>
-
-            
-        <section>
-            <h3>Useful Results</h3>
-
-        </section>
-
-        
+    </section>
 
 
 
-    
-    </body>
+
+
+
+</body>
 
 </html>
