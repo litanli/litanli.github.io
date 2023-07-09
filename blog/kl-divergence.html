@@ -161,7 +161,7 @@
                 p(x)=N(\mu_1, \sigma_1^2), q(x)=N(\mu_2, \sigma_2^2)
                 } \\$ 
                 <br>
-                The KL divergence of a Gaussian posterior $p$ from a Gaussian prior $q$ is given by Eq. (3).
+                The KL divergence of an univariate Gaussian posterior $p$ from a Gaussian prior $q$ is given by Eq. (3).
             </p>
             <p>
                 \begin{align*}
@@ -239,8 +239,112 @@
                 p(\bold{x})=N(\bold{\mu_0}, \bold{\Sigma_0}), q(\bold{x})=N(\bold{\mu_1}, \bold{\Sigma_1})
                 }$
                 <br><br>
-                For multivariate Gaussians we have:
-            </p><br>
+                For multivariate Gaussian distributions we have:
+
+                \begin{align*}
+                D_{KL}(p||q) &= \int_{-\infty}^{\infty} p(\bold{x})\log\left(\frac{p(\bold{x})}{q(\bold{x})}\right)d\bold{x} \\
+                &=\int_{-\infty}^{\infty}p(\bold{x})
+                \left(
+                    \frac{1}{2}\ln
+                    \left(
+                        \frac{\begin{vmatrix}\bold{\Sigma_2}\end{vmatrix}}{\begin{vmatrix}\bold{\Sigma_1}\end{vmatrix}}
+                    \right)
+                    - \frac{1}{2}(\bold{x}-\bold{\mu_1})^T\bold{\Sigma_1^{-1}}(\bold{x}-\bold{\mu_1})
+                    + \frac{1}{2}(\bold{x}-\bold{\mu_2})^T\bold{\Sigma_2^{-1}}(\bold{x}-\bold{\mu_2}) 
+                \right) d\bold{x} \\
+
+                &=\frac{1}{2}\ln
+                \left(
+                    \frac{\begin{vmatrix}\bold{\Sigma_2}\end{vmatrix}}{\begin{vmatrix}\bold{\Sigma_1}\end{vmatrix}}
+                \right)
+                -\frac{1}{2}
+                \underbrace{
+                E_{\bold{x}\sim p(\bold{x})}\left[(\bold{x}-\bold{\mu_1})^T\bold{\Sigma_1^{-1}}(\bold{x}-\bold{\mu_1})\right]
+                }_{\text{(a)}}
+                
+                +\frac{1}{2}
+                \underbrace{
+                E_{\bold{x}\sim p(\bold{x})}\left[(\bold{x}-\bold{\mu_2})^T\bold{\Sigma_2^{-1}}(\bold{x}-\bold{\mu_2})\right]
+                }_{\text{(b)}}
+                \end{align*}
+            </p>
+
+            <p>
+                We use the trace trick for the expectation of quadratic forms. First, the quadratic forms
+                inside (a) and (b) evaluate to 1 by 1 matrices. Since a 1 by 1 matrix only has one entry,
+                it's equal to the trace of itself. We can write (a) as <br>
+
+                \begin{align*}
+                
+                E_{\bold{x}\sim p(\bold{x})}
+                \left[ tr
+                    \left(
+                        (\bold{x}-\bold{\mu_1})^T\bold{\Sigma_1^{-1}}(\bold{x}-\bold{\mu_1})
+                    \right)
+                \right] 
+                \end{align*} 
+
+                Now, traces are invariant under cyclic permutation, i.e. $tr(ABC)=tr(BCA)=tr(CAB)$, and
+                the expectation of the trace of a matrix is equal to the trace of the expectation,
+                $E[tr(A)]=tr(E[A])$. Putting these together we have
+                \begin{align*}
+                tr\left(
+                    E_{\bold{x}\sim p(\bold{x})}
+                    \left[ 
+                    (\bold{x}-\bold{\mu_1})(\bold{x}-\bold{\mu_1})^T\bold{\Sigma_1^{-1}}
+                    \right] 
+                \right)
+                \end{align*}
+
+                Since the inverse covariance matrix is constant w.r.t. $\bold{x}$, we move it out of the 
+                expectation and find that (a) equals $n$.
+
+                \begin{align*}
+                tr\left(
+                    \bold{\Sigma_1^{-1}}
+                    E_{\bold{x}\sim p(\bold{x})}
+                    \left[ 
+                    (\bold{x}-\bold{\mu_1})(\bold{x}-\bold{\mu_1})^T
+                    \right] 
+                \right)
+                = tr\left(
+                    \bold{\Sigma_1^{-1}}\bold{\Sigma_1}
+                \right)
+                = tr\left(\bold{I}\right)
+                = n
+                
+                \end{align*}
+
+                Evaluating (b) uses the same trick but takes a little bit more work:
+
+                \begin{align*}
+
+                
+                E_{\bold{x}\sim p(\bold{x})}
+                \left[
+                    (\bold{x}-\bold{\mu_2})^T
+                    \bold{\Sigma_2^{-1}}(\bold{x}-\bold{\mu_2})
+                \right]
+                = \\
+
+                \tag{Introduce $\bold{\mu_1}$}
+                E_{\bold{x}\sim p(\bold{x})}
+                \left[
+                    ((\bold{x}-\bold{\mu_1})-(\bold{\mu_1} - \bold{\mu_2}))^T
+                    \bold{\Sigma_2^{-1}}(\bold{x}-\bold{\mu_2})
+                \right]
+                &=
+                
+                
+
+
+                \end{align*}
+                
+                
+
+
+
+            </p>
         </subsection>
 
         <subsection id="multivariate standard normal">
