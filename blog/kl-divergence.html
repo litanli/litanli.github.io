@@ -56,8 +56,8 @@
 
     <!-- Define variables -->
     $$
-        \gdef\expect{E_{x \sim p(x)}}
-        \gdef\expectb{E_{\bold{x} \sim p(\bold{x})}}
+    \gdef\expect{E_{x \sim p(x)}}
+    \gdef\expectb{E_{\bold{x} \sim p(\bold{x})}}
     $$
 
     <section id="intro">
@@ -81,7 +81,7 @@
             D_{KL}(p||q) = \int_{-\infty}^{\infty} p(x)\log\left(\frac{p(x)}{q(x)}\right)dx
             \end{equation}
 
-            When we use the base 2 log, the KL divergence has units of "bits"; "nats" for natural log.
+            <b>Remark</b>: KL divergence has units of "bits" when using log base 2; "nats" when using natural log.
 
         </p>
 
@@ -133,14 +133,14 @@
 
                 \begin{equation}
                 \tag*{}
-                D_{KL}(p||r) \nleq D_{KL}(p||q) + D_{KL}(q||r) 
+                D_{KL}(p||r) \nleq D_{KL}(p||q) + D_{KL}(q||r)
                 \end{equation}
 
             </li><br>
         </ol>
         <p>
             <b>Remark</b>: Due to the last two properties, the KL divergence doesn't qualify as a distance metric,
-            which is why it's called the KL <i>divergence</i>. Also, because of asymmetry, we usually say that
+            which is why it's called the KL <i>divergence</i>. Because of asymmetry, we usually say that
             $D_{KL}(p||q)$ is the "divergence of $p$ from $q$" rather than "between $p$ and $q$".
         </p>
 
@@ -149,14 +149,13 @@
     <hr>
 
     <section>
-        <h3>Some Useful Results</h3>
+        <h3>Useful Results</h3>
 
         <p>
             In variational Bayesian inference we often encounter the KL divergence of a Gaussian
             from another Gaussian. As you'd expect, the algebra works out nicely to closed-formed
-            equations. We list them here for the univariate (Eq. 3) and multivariate (Eq. 4) cases ; and
-            for the special case of an isotropic Gaussian posterior from a standard normal prior (Eq. 5),
-            and from a uniform prior (Eq. 6).
+            equations. We list them here for the univariate (Eq. 3), multivariate (Eq. 4) and for
+            the special case of an isotropic posterior from a standard normal prior (Eq. 5)
         </p>
 
 
@@ -164,7 +163,7 @@
             <p>
                 $\underline{
                 p(x)=N(\mu_1, \sigma_1^2), q(x)=N(\mu_2, \sigma_2^2)
-                } \\$ 
+                } \\$
                 <br>
                 The KL divergence of an univariate Gaussian posterior $p$ from a Gaussian prior $q$ is given by Eq. (3).
             </p>
@@ -182,12 +181,12 @@
                 \right]
                 \right) dx \\
 
-                &=\ln \left( \frac{\sigma_2}{\sigma_1} \right) 
+                &=\ln \left( \frac{\sigma_2}{\sigma_1} \right)
                 - \frac{1}{2\sigma_1^2}
                 \underbrace{\int_{-\infty}^{\infty}p(x)(x-\mu_1)^2dx}_{\sigma_1^2} \\
                 \tag{Use ln}
-                & \quad + \frac{1}{2\sigma_2^2} 
-                
+                & \quad + \frac{1}{2\sigma_2^2}
+
                 \int_{-\infty}^{\infty}p(x)(x-\mu_2)^2dx \\
 
                 &=\ln \left( \frac{\sigma_2}{\sigma_1} \right) - \frac{1}{2} +
@@ -221,7 +220,7 @@
         <subsection id="univariate standard normal">
             <p>
                 $\underline{
-                    p(x)=N(\mu_1, \sigma_1^2), q(x)=N(0, 1)
+                p(x)=N(\mu_1, \sigma_1^2), q(x)=N(0, 1)
                 }$
                 <br><br>
                 For a standard normal prior, $D_{KL}$ only depends on the mean and variance of the posterior,
@@ -237,13 +236,13 @@
         <subsection id="multivariate">
 
             $$
-                \gdef\quadxmu#1#2#3{
-                    (\bold{x}-\pmb{\mu_#1})^T\bold{\Sigma_#2^{-1}}(\bold{x}-\pmb{\mu_#3})
-                }
-                
-                \gdef\quadmumu#1#2#3{
-                    (\pmb{\mu_#1}-\pmb{\mu_#2})^T\bold{\Sigma_#3^{-1}}(\pmb{\mu_#1}-\pmb{\mu_#2})
-                }
+            \gdef\quadxmu#1#2#3{
+            (\bold{x}-\pmb{\mu_#1})^T\bold{\Sigma_#2^{-1}}(\bold{x}-\pmb{\mu_#3})
+            }
+
+            \gdef\quadmumu#1#2#3{
+            (\pmb{\mu_#1}-\pmb{\mu_#2})^T\bold{\Sigma_#3^{-1}}(\pmb{\mu_#1}-\pmb{\mu_#2})
+            }
             $$
 
             <p>
@@ -254,79 +253,80 @@
                 For multivariate Gaussian distributions we have:
 
                 \begin{align*}
-                D_{KL}(p||q) &= \int_{-\infty}^{\infty} p(\bold{x})\log\left(\frac{p(\bold{x})}{q(\bold{x})}\right)d\bold{x} \\
+                D_{KL}(p||q) &= \int_{-\infty}^{\infty}
+                p(\bold{x})\log\left(\frac{p(\bold{x})}{q(\bold{x})}\right)d\bold{x} \\
                 &= \int_{-\infty}^{\infty} p(\bold{x})
                 \left(
-                    \frac{1}{2} \ln
-                    \left(
-                        \frac{\begin{vmatrix}\bold{\Sigma_2}\end{vmatrix}}{\begin{vmatrix}\bold{\Sigma_1}\end{vmatrix}}
-                    \right)
-                    - \frac{1}{2} \quadxmu{1}{1}{1}
-                    + \frac{1}{2} \quadxmu{2}{2}{2}
+                \frac{1}{2} \ln
+                \left(
+                \frac{\begin{vmatrix}\bold{\Sigma_2}\end{vmatrix}}{\begin{vmatrix}\bold{\Sigma_1}\end{vmatrix}}
+                \right)
+                - \frac{1}{2} \quadxmu{1}{1}{1}
+                + \frac{1}{2} \quadxmu{2}{2}{2}
                 \right) d\bold{x} \\
 
                 &=\frac{1}{2}\ln
                 \left(
-                    \frac{\begin{vmatrix}\bold{\Sigma_2}\end{vmatrix}}{\begin{vmatrix}\bold{\Sigma_1}\end{vmatrix}}
+                \frac{\begin{vmatrix}\bold{\Sigma_2}\end{vmatrix}}{\begin{vmatrix}\bold{\Sigma_1}\end{vmatrix}}
                 \right)
                 -\frac{1}{2}
                 \underbrace{
                 \expectb\left[
-                    \quadxmu{1}{1}{1}
+                \quadxmu{1}{1}{1}
                 \right]
                 }_{\text{(a)}}
-                
+
                 +\frac{1}{2}
                 \underbrace{
                 \expectb\left[
-                    \quadxmu{2}{2}{2}
+                \quadxmu{2}{2}{2}
                 \right]
                 }_{\text{(b)}}
                 \end{align*}
             </p>
 
             <p>
-                To evaluate (a) and (b), we use the trace trick for the expectation of quadratic forms. 
+                To evaluate (a) and (b), we use the trace trick for the expectation of quadratic forms.
                 Recall that the trace of a
-                square matrix is the sum of the main diagonal. The quadratic forms inside (a) and (b) 
-                evaluate to 1 by 1 matrices (each containing a single quadratic polynomial in $\bold{x}$), 
+                square matrix is the sum of the main diagonal. The quadratic forms inside (a) and (b)
+                evaluate to 1 by 1 matrices (each containing a single quadratic polynomial in $\bold{x}$),
                 the trace of which is the polynomial itself. This allows us to write (a) as: <br>
 
                 \begin{align*}
-                
+
                 \expectb
                 \left[ tr
-                    \left(
-                        \quadxmu{1}{1}{1}
-                    \right)
-                \right] 
-                \end{align*} 
+                \left(
+                \quadxmu{1}{1}{1}
+                \right)
+                \right]
+                \end{align*}
 
                 Now, traces are invariant under cyclic permutation, i.e. $tr(ABC)=tr(BCA)=tr(CAB)$, and
                 the expectation of the trace of a matrix is equal to the trace of the expectation,
                 $E[tr(A)]=tr(E[A])$. Using both properties gives us:
                 \begin{align*}
                 tr\left(
-                    \expectb
-                    \left[ 
-                        (\bold{x} - \pmb{\mu_1})(\bold{x} - \pmb{\mu_1})^T \bold{\Sigma_1^{-1}}
-                    \right] 
+                \expectb
+                \left[
+                (\bold{x} - \pmb{\mu_1})(\bold{x} - \pmb{\mu_1})^T \bold{\Sigma_1^{-1}}
+                \right]
                 \right)
                 \end{align*}
 
-                Since the inverse covariance matrix is constant w.r.t. $\bold{x}$, we move it out of the 
+                Since the inverse covariance matrix is constant w.r.t. $\bold{x}$, we move it out of the
                 expectation and find that (a) equals $n$.
 
                 \begin{align*}
                 tr\left(
-                    \bold{\Sigma_1^{-1}}
-                    \expectb
-                    \left[ 
-                    (\bold{x}-\pmb{\mu_1})(\bold{x}-\pmb{\mu_1})^T
-                    \right] 
+                \bold{\Sigma_1^{-1}}
+                \expectb
+                \left[
+                (\bold{x}-\pmb{\mu_1})(\bold{x}-\pmb{\mu_1})^T
+                \right]
                 \right)
                 = tr\left(
-                    \bold{\Sigma_1^{-1}}\bold{\Sigma_1}
+                \bold{\Sigma_1^{-1}}\bold{\Sigma_1}
                 \right)
                 = tr\left(\bold{I}\right)
                 = n
@@ -338,51 +338,51 @@
                 \tag{Introduce $\pmb{\mu_1}$}
                 &\expectb
                 [
-                    ((\bold{x} - \pmb{\mu_1}) + (\pmb{\mu_1} - \pmb{\mu_2}))^T
-                    \bold{\Sigma_2^{-1}}
-                    ((\bold{x} - \pmb{\mu_1}) + (\pmb{\mu_1} - \pmb{\mu_2}))
+                ((\bold{x} - \pmb{\mu_1}) + (\pmb{\mu_1} - \pmb{\mu_2}))^T
+                \bold{\Sigma_2^{-1}}
+                ((\bold{x} - \pmb{\mu_1}) + (\pmb{\mu_1} - \pmb{\mu_2}))
                 ] \\
 
                 \tag{Distribute $\bold{\Sigma_2^{-1}}$}
                 &= \expectb
                 [
-                    \left(
-                        (\bold{x}-\pmb{\mu_1})^T \bold{\Sigma_2^{-1}}
-                        + (\pmb{\mu_1}-\pmb{\mu_2})^T \bold{\Sigma_2^{-1}}
-                    \right)
-                    ((\bold{x} - \pmb{\mu_1}) + (\pmb{\mu_1} - \pmb{\mu_2}))
+                \left(
+                (\bold{x}-\pmb{\mu_1})^T \bold{\Sigma_2^{-1}}
+                + (\pmb{\mu_1}-\pmb{\mu_2})^T \bold{\Sigma_2^{-1}}
+                \right)
+                ((\bold{x} - \pmb{\mu_1}) + (\pmb{\mu_1} - \pmb{\mu_2}))
                 ] \\
 
-                &= \expectb 
+                &= \expectb
                 [
-                    \quadxmu{1}{2}{1}
-                    + (\bold{x} - \pmb{\mu_1})^T \bold{\Sigma_2^{-1}} (\pmb{\mu_1} - \pmb{\mu_2}) \\
-                    & \quad + (\pmb{\mu_1} - \pmb{\mu_2})^T \bold{\Sigma_2^{-1}} (\bold{x} - \pmb{\mu_1})
-                    + \quadmumu{1}{2}{2}
+                \quadxmu{1}{2}{1}
+                + (\bold{x} - \pmb{\mu_1})^T \bold{\Sigma_2^{-1}} (\pmb{\mu_1} - \pmb{\mu_2}) \\
+                & \quad + (\pmb{\mu_1} - \pmb{\mu_2})^T \bold{\Sigma_2^{-1}} (\bold{x} - \pmb{\mu_1})
+                + \quadmumu{1}{2}{2}
                 ] \\
 
                 \tag{Move constants}
                 &= \expectb [\quadxmu{1}{2}{1}]
-                   + (\pmb{\mu_1} - \pmb{\mu_2}) \bold{\Sigma_2^{-1}} \expectb [(\bold{x} - \pmb{\mu_1})^T] \\
-                   & \quad + (\pmb{\mu_1} - \pmb{\mu_2})^T \bold{\Sigma_2^{-1}} \expectb[(\bold{x} - \pmb{\mu_1})]
-                   + \quadmumu{1}{2}{2} \\ 
+                + (\pmb{\mu_1} - \pmb{\mu_2}) \bold{\Sigma_2^{-1}} \expectb [(\bold{x} - \pmb{\mu_1})^T] \\
+                & \quad + (\pmb{\mu_1} - \pmb{\mu_2})^T \bold{\Sigma_2^{-1}} \expectb[(\bold{x} - \pmb{\mu_1})]
+                + \quadmumu{1}{2}{2} \\
                 \end{align*}
 
-                Since $\expectb [(\bold{x} - \pmb{\mu_1})] = \expectb[\bold{x}] - \pmb{\mu_1} = \bold{0}$, 
+                Since $\expectb [(\bold{x} - \pmb{\mu_1})] = \expectb[\bold{x}] - \pmb{\mu_1} = \bold{0}$,
                 we are left with:
-                
+
                 \begin{align*}
                 \expectb [\quadxmu{1}{2}{1}] + \quadmumu{1}{2}{2}
                 \end{align*}
-                
+
                 \begin{align*}
                 \tag{Trace trick}
                 \begin{split}
                 &= \expectb[tr((\bold{x} - \pmb{\mu_1})(\bold{x} - \pmb{\mu_1})^T \bold{\Sigma_2^{-1}})]
                 + \quadmumu{1}{2}{2} \\
 
-                &= tr(\expectb[(\bold{x} - \pmb{\mu_1})(\bold{x} - \pmb{\mu_1})^T \bold{\Sigma_2^{-1}}]) 
-                + \quadmumu{1}{2}{2} 
+                &= tr(\expectb[(\bold{x} - \pmb{\mu_1})(\bold{x} - \pmb{\mu_1})^T \bold{\Sigma_2^{-1}}])
+                + \quadmumu{1}{2}{2}
                 \end{split} \\
                 \end{align*}
 
@@ -393,19 +393,19 @@
 
                 \tag{Definition of $\bold{\Sigma_1}$}
                 &= tr(\bold{\Sigma_1} \bold{\Sigma_2^{-1}}) + \quadmumu{1}{2}{2}
-    
+
                 \end{align*}
-                
+
                 Plugging back the simplified expressions for (a) and (b) yields:
 
                 \begin{equation}
                 \tag{4}
-                D_{KL}(p||q) = \frac{1}{2} 
-                \left( \ln 
-                    \left(
-                        \frac{\begin{vmatrix}\bold{\Sigma_2}\end{vmatrix}}{\begin{vmatrix}\bold{\Sigma_1}\end{vmatrix}}
-                    \right)
-                    - n + tr(\bold{\Sigma_1} \bold{\Sigma_2^{-1}}) + \quadmumu{1}{2}{2}
+                D_{KL}(p||q) = \frac{1}{2}
+                \left( \ln
+                \left(
+                \frac{\begin{vmatrix}\bold{\Sigma_2}\end{vmatrix}}{\begin{vmatrix}\bold{\Sigma_1}\end{vmatrix}}
+                \right)
+                - n + tr(\bold{\Sigma_1} \bold{\Sigma_2^{-1}}) + \quadmumu{1}{2}{2}
                 \right)
                 \end{equation}
             </p><br>
@@ -417,99 +417,64 @@
                 p(\bold{x})=N(\pmb{\mu}, diag(\sigma_1^2, ..., \sigma_n^2)), q(\bold{x})=N(\bold{0}, I)
                 }$ <br><br>
 
-                For an isotropic Gaussian posterior and the standard normal prior, we have 
-                $\pmb{\mu_1} = \pmb{\mu}, \bold{\Sigma_1}=diag(\sigma_1^2, ..., \sigma_n^2), \pmb{\mu_2}=\bold{0}$ 
+                For an isotropic Gaussian posterior and the standard normal prior, we have
+                $\pmb{\mu_1} = \pmb{\mu}, \bold{\Sigma_1}=diag(\sigma_1^2, ..., \sigma_n^2), \pmb{\mu_2}=\bold{0}$
                 and $\bold{\Sigma_2}=\bold{I}$.
 
                 \begin{align*}
-                D_{KL}(p||q) &= \frac{1}{2} 
-                \left( \ln 
-                    \left(
-                        \frac{\begin{vmatrix}\bold{\Sigma_2}\end{vmatrix}}{\begin{vmatrix}\bold{\Sigma_1}\end{vmatrix}}
-                    \right)
-                    - n + tr(\bold{\Sigma_1} \bold{\Sigma_2^{-1}}) + \quadmumu{1}{2}{2}
-                \right) \\
-
-                &= \frac{1}{2} 
-                \left( \ln 
-                    \left(
-                        \frac{\begin{vmatrix}\bold{I}\end{vmatrix}}{\begin{vmatrix}\bold{\Sigma_1}\end{vmatrix}}
-                    \right)
-                    - n + tr(\bold{\Sigma_1} \bold{I})
-                    + (\pmb{\mu} - \bold{0})^T\bold{I}(\pmb{\mu} - \bold{0})
-                \right) \\
-
-                
-
-                &= \frac{1}{2}
-                \left(\ln 
-                    \left(
-                        \frac{1}{\begin{vmatrix}diag(\sigma_1^2, ..., \sigma_n^2)\end{vmatrix}}
-                    \right)
-                    - n + tr(diag(\sigma_1^2, ..., \sigma_n^2))
-                    + \pmb{\mu}^T\pmb{\mu}
+                D_{KL}(p||q) &= \frac{1}{2}
+                \left( \ln
+                \left(
+                \frac{\begin{vmatrix}\bold{\Sigma_2}\end{vmatrix}}{\begin{vmatrix}\bold{\Sigma_1}\end{vmatrix}}
+                \right)
+                - n + tr(\bold{\Sigma_1} \bold{\Sigma_2^{-1}}) + \quadmumu{1}{2}{2}
                 \right) \\
 
                 &= \frac{1}{2}
-                \left( -\ln 
-                    \left(
-                        \prod_{i=1}^n \sigma_i^2
-                    \right)
-                    - \sum_{i=1}^n 1 + \sum_{i=1}^n \sigma_i^2
-                    + \sum_{i=1}^n \mu_i^2
+                \left( \ln
+                \left(
+                \frac{\begin{vmatrix}\bold{I}\end{vmatrix}}{\begin{vmatrix}\bold{\Sigma_1}\end{vmatrix}}
+                \right)
+                - n + tr(\bold{\Sigma_1} \bold{I})
+                + (\pmb{\mu} - \bold{0})^T\bold{I}(\pmb{\mu} - \bold{0})
                 \right) \\
 
                 &= \frac{1}{2}
-                \left(  
-                    - \sum_{i=1}^n \ln\sigma_i^2
-                    - \sum_{i=1}^n 1 + \sum_{i=1}^n \sigma_i^2
-                    + \sum_{i=1}^n \mu_i^2
+                \left(\ln
+                \left(
+                \frac{1}{\begin{vmatrix}diag(\sigma_1^2, ..., \sigma_n^2)\end{vmatrix}}
+                \right)
+                - n + tr(diag(\sigma_1^2, ..., \sigma_n^2))
+                + \pmb{\mu}^T\pmb{\mu}
+                \right) \\
+
+                &= \frac{1}{2}
+                \left( -\ln
+                \left(
+                \prod_{i=1}^n \sigma_i^2
+                \right)
+                - \sum_{i=1}^n 1 + \sum_{i=1}^n \sigma_i^2
+                + \sum_{i=1}^n \mu_i^2
+                \right) \\
+
+                &= \frac{1}{2}
+                \left(
+                - \sum_{i=1}^n \ln\sigma_i^2
+                - \sum_{i=1}^n 1 + \sum_{i=1}^n \sigma_i^2
+                + \sum_{i=1}^n \mu_i^2
                 \right) \\
 
                 \tag{5}
                 &= \frac{1}{2} \sum_{i=1}^n
-                \left(  
-                    - \ln\sigma_i^2
-                    - 1 +  \sigma_i^2 +\mu_i^2
+                \left(
+                - \ln\sigma_i^2
+                - 1 + \sigma_i^2 +\mu_i^2
                 \right)
 
-                \end{align*} 
-
-                
-
+                \end{align*}
             </p>
         </subsection>
-
-
-        <subsection id="uniform">
-            <p>
-                $\underline{
-                p(\bold{x})=N(\bold{\mu}, diag(\sigma_1^2, ..., \sigma_n^2)), q(\bold{x})=U(a, b)
-                }$
-            </p>
-        </subsection>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     </section>
-
-
-
-
-
-
 </body>
 
 </html>
