@@ -50,7 +50,7 @@
     </a>
 
     <section id="title">
-        <h1>Latent Spaces, the ELBO and Generative Models</h1>
+        <h1>Latent Spaces and the ELBO</h1>
     </section>
 
     <hr>
@@ -65,10 +65,8 @@
 
     <section id="intro">
         <p>
-            Here we'll make some remarks about latent spaces, derive the evidence lower bound
-            (ELBO), and talk about the goal of generative modeling from the perspective of
-            variational autoencoders
-            <a href="https://arxiv.org/abs/1312.6114"> (Kingma & Welling, 2013)</a>.
+            Here we'll make some remarks about latent spaces and derive the evidence lower bound
+            (ELBO).
             <br><br>
 
             Used in variational Bayesian inference, the ELBO serves as a proxy
@@ -230,7 +228,7 @@
         \end{align*}
 
 
-        In the VAE paper, the authors assume that the true likelihood $p(\bold{x} | \bold{z})$
+        <a href="https://arxiv.org/abs/1312.6114"> Kingma & Welling, 2013</a> assumes that the true likelihood $p(\bold{x} | \bold{z})$
         comes from some parametric family of distributions $p_{\pmb{\theta}}$ (Gaussian for
         continuous data, Bernoulli for binary). In other words, assume the parametric form 
         is known, but the parameters must be estimated. 
@@ -245,7 +243,7 @@
 
         \end{align*}
 
-        The second form shows that maximizing the ELBO w.r.t. $\pmb{\theta}$ and $\pmb{\phi}$ simultaneously
+        This form shows that maximizing the ELBO w.r.t. $\pmb{\theta}$ and $\pmb{\phi}$ simultaneously
         learns a posterior $q_{\hat{\pmb{\phi}}}$ that moves toward maximizing
         the data likelihood $p_{\pmb{\hat{\theta}}}(\bold{x} | \bold{z})$, while 
         regularizing the posterior by keeping it close to $p(\pmb{z})$. I.e. it learns a posterior that 
@@ -290,13 +288,9 @@
         implying a high degree of uncertainty or variability in the inferred latents, which can
         be beneficial in cases where the true posterior is complex and multimodal.
 
-
-
-
-
-
-
     </section>
+    <br>
+    <hr>
 </body>
 
 </html>
