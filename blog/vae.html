@@ -131,6 +131,7 @@
         Since $\mathcal{L}$ is a lower bound, maximizing $\mathcal{L}$ w.r.t. $\pmb{\theta}$ and $\pmb{\phi}$
         serves as a proxy for maximizing the marginal likelihood of $\bold{x}^{(i)}$. Here we derive Song and Kingma's
         estimator for the ELBO.
+
         <h4>ELBO for a Single Datapoint $\bold{x}^{(i)}$</h4>
 
         \begin{align*}
@@ -163,8 +164,8 @@
         \end{align*}
 
         Here $\pmb{\mu}_{\pmb{\phi}}(\bold{x}^{(i)}) \in \mathbb{R}^J$ is a vector coming from one head,
-        and $\pmb{\sigma}^2_{\pmb{\phi}}(\bold{x}^{(i)}) \in \mathbb{R}^J$ is a vector coming from
-        the other. $J$ is the dimensionality of the latent space. In other words, we assume
+        while the other outputs $\log \pmb{\sigma}^2_{\pmb{\phi}}(\bold{x}^{(i)}) \in \mathbb{R}^J$. 
+        $J$ is the dimensionality of the latent space. In other words, we assume
         the latents are independent from one another and follow Gaussian form. The covariance 
         matrix is diagonal with entries
         
@@ -203,30 +204,110 @@
             ] \approx \frac{1}{L} \sum_{\ell=1}^L \log p_{\pmb{\theta}}(\bold{x}^{(i)} | \bold{z}^{(i, \ell)})
         \end{align*}
 
-    However, the act of drawing samples from a distribution is not a differentiable operation. <br><br>
+        However, the act of drawing samples from a distribution is not a differentiable operation. <br><br>
 
-    <i>Reparameterization Trick</i>: Instead, draw $L$ samples of $\bold{\epsilon}^{(i, \ell)} \sim N(\bold{0}, \bold{I})$,
-    where $\bold{\epsilon}^{(i, \ell)} \in \mathbb{R}^{J}$. Then for each sample, scale it to 
-    $\pmb{\sigma}^2_{\pmb{\phi}}(\bold{x}^{(i)})$ variance and shift its mean ($\odot$ denotes 
-    element-wise product).
+        <i>Reparameterization Trick</i>: Instead, draw $L$ samples from $\bold{\epsilon}^{(i, \ell)} \sim N(\bold{0}, \bold{I})$,
+        where $\bold{\epsilon}^{(i, \ell)} \in \mathbb{R}^{J}$. Then for each sample, scale it to 
+        $\pmb{\sigma}^2_{\pmb{\phi}}(\bold{x}^{(i)})$ variance and shift its mean to $\pmb{\mu}_{\pmb{\phi}}(\bold{x}^{(i)})$. 
+        The $\odot$ denotes an element-wise product.
 
-    \begin{align*}
-            \bold{z}^{(i, \ell)} = 
-    \end{align*}
+        \begin{align*}
+            \bold{z}^{(i, \ell)} = \pmb{\mu}_{\pmb{\phi}} + \pmb{\sigma}_{\pmb{\phi}} \odot \bold{\epsilon}^{(i, \ell)}
+        \end{align*}
 
+        Since $\bold{\epsilon}$ is not a function of $\pmb{\phi}$, we have
 
+        \begin{align*}
+            \frac{\partial \bold{z}^{(i, \ell)}}{\partial \pmb{\phi}} 
+            = \frac{\partial \bold{\mu}_{\pmb{\phi}}}{\partial \pmb{\phi}} 
+            + \frac{\partial \bold{\sigma}_{\pmb{\phi}}}{\partial \pmb{\phi}} \odot \bold{\epsilon}^{(i, \ell)}
+        \end{align*}
+
+        thus making $\bold{z}^{(i, \ell)}$ differentiable. <br><br>
+    
+        <b>Remark</b>: While $\bold{\mu}_{\pmb{\phi}}$ and $\bold{\sigma}_{\pmb{\phi}}$ are deterministic functions,
+        $\bold{z}^{(i, \ell)}$ is a stochastic equation through the random variable $\bold{\epsilon}$. <br><br>
+
+        
+        Finally we have the ELBO estimator for a single datapoint $\bold{x}^{(i)}$:
+
+        \begin{align*}
+            \hat{\mathcal{L}}(\pmb{\theta}, \pmb{\phi}; \bold{x}^{(i)}) 
+            = \frac{1}{L} \sum_{\ell=1}^L \log p_{\pmb{\theta}}(\bold{x}^{(i)} | \bold{z}^{(i, \ell)})
+            + \frac{1}{2} \sum_{j=1}^J
+            \left(
+            - \ln\sigma_j^2
+            - 1 + \sigma_j^2 +\mu_j^2
+            \right).
+        \end{align*}
+
+        <h4>ELBO Estimator for the Training Set</h4>
+
+        We can estimate the evidence lower bound of the whole dataset $\bold{X} = \{ \bold{x}^{(i)}\}_{i=1}^N$
+        by randomly selecting a minibatch of size $M$ (also a hyperparameter).
+        
+        \begin{align*}
+            \hat{\mathcal{L}}(\pmb{\theta}, \pmb{\phi}; \bold{X}^M) 
+            &\approx \mathcal{L}(\pmb{\theta}, \pmb{\phi}; \bold{X}) \\
+            &= \frac{N}{M} \sum_{j=1}^M \hat{\mathcal{L}}(\pmb{\theta}, \pmb{\phi}; \bold{x}^{(j)})
+            
+        \end{align*}
+
+        Here $\frac{1}{M} \sum_{j=1}^M \hat{\mathcal{L}}(\pmb{\theta}, \pmb{\phi}; \bold{x}^{(j)})$
+        is the minibatch estimate of the single point ELBO. <br><br>
+
+        <b>Proof</b>: <br>
+
+        \begin{align*}
+            \text{Evidence of }\bold{X} &= \log \left( 
+                p_{\bold{\bold{\theta}}}(\bold{x}^{(1)}, \bold{x}^{(2)}, ..., \bold{x}^{(N)})
+            \right) \\
+            &= \log \left( 
+                p_{\bold{\bold{\theta}}}(\bold{x}^{(1)}) \cdot p_{\bold{\bold{\theta}}}(\bold{x}^{(2)}) 
+                \cdot ... \cdot p_{\bold{\theta}}(\bold{x}^{(N)})
+            \right) \\
+            &= \sum_{i=1}^N \log p_{\bold{\theta}}(\bold{x}^{(i)}) \\
+            &\geq \sum_{i=1}^N \mathcal{L}(\pmb{\theta}, \pmb{\phi}; \bold{x}^{(i)})
+            = \mathcal{L}(\pmb{\theta}, \pmb{\phi}; \bold{X})
+        \end{align*}
+        
+        In the second line we assumed the dataset is i.i.d. and in the last line we invoked 
+        $\log p_{\bold{\theta}}(\bold{x}^{(i)}) \geq \mathcal{L}(\pmb{\theta}, \pmb{\phi}; \bold{x}^{(i)})$
+        for all $\bold{x}^{(i)}$.
+        Replace single point ELBOs $\mathcal{L}(\pmb{\theta}, \pmb{\phi}; \bold{x}^{(i)})$ in the last line
+        with the minibatch version $\frac{1}{M} \sum_{j=1}^M \mathcal{L}(\pmb{\theta}, \pmb{\phi}; \bold{x}^{(j)})$ 
+        and we have
+
+        \begin{align*}
+            \hat{\mathcal{L}}(\pmb{\theta}, \pmb{\phi}; \bold{X}^M) 
+            &\approx \mathcal{L}(\pmb{\theta}, \pmb{\phi}; \bold{X}) \\
+            &= \sum_{i=1}^N \frac{1}{M} \sum_{j=1}^M \hat{\mathcal{L}}(\pmb{\theta}, \pmb{\phi}; \bold{x}^{(j)}) \\
+            &= \frac{N}{M} \sum_{j=1}^M \hat{\mathcal{L}}(\pmb{\theta}, \pmb{\phi}; \bold{x}^{(j)})
+        \end{align*}
+    </section>
+
+    <hr>
+
+    <section id="algorithm">
+        <h3>The Algorithm</h3>
+
+        
+    </section>
+
+    <hr>
+
+    <section id="generative-modeling">
+        <h3>Generative Modeling</h3>
 
         <p>In an ideal world, we'd like to sample from the true posterior $p(\bold{z}|\bold{x})$, 
             but we don't have access to it. The good news is that optimizing the ELBO encourages 
             the learned posterior to be similar in form to the prior, giving us some assurance that
             the decoder can generate novel datapoints which are in-distribution using latents drawn 
             from the prior. 
-        </p>
-        
-
-        <h4></h4>
+        </p> 
 
     </section>
+
 </body>
 
 </html>
