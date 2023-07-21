@@ -74,6 +74,41 @@
 
     <hr>
 
+    <section id="generative-modeling">
+        <h3>Generative Modeling</h3>
+
+        Before swan-diving into the math, here's a blurb about how to generate datapoints with the VAE framework.
+        
+        <p>
+            In an ideal world, we'd like to sample from the true posterior $p(\bold{z}|\bold{x})$, 
+            but we don't have access to it. The good news is that optimizing the ELBO encourages 
+            the learned posterior to be similar in form to the prior, giving us some assurance that,
+            using latents drawn from the prior, the decoder will generate novel datapoints which are 
+            in-distribution to the training data. The reasoning goes something like:
+        </p> 
+
+        <ol>
+            <li>The learned posterior is regularized by the prior via a KL divergence term in the ELBO; 
+                the prior is similar in form to the learned posterior.</li>
+            <li>The decoder generates data points which are in-distribution to the training data when fed latents
+                from the learned posterior/encoder (perfect reconstructions, in fact, under perfect optimization).
+            </li>
+            <li>The decoder also generates data points which are in-distribution to the training data when fed latents
+                from the prior.</li>
+        </ol>
+
+        <p>
+            Therefore the procedure is as simple as sampling a latent vector $\bold{z}^{(i)}$ from 
+            the prior $p(\bold{z})$ used during training, passing it to the decoder and sampling 
+            $\bold{x}^{(i)} \sim p_{\pmb{\theta}}(\bold{x}|\bold{z}^{(i)})$. Or you can sample a 
+            batch of $\bold{x}^{(i)}$ and take the mean to get a MAP estimate.
+
+        </p> 
+
+    </section>
+
+    <hr>
+
     <section id="section 1">
         <h3>Setup</h3>
         
@@ -229,7 +264,7 @@
         $\bold{z}^{(i, \ell)}$ is a stochastic equation through the random variable $\bold{\epsilon}$. <br><br>
 
         
-        Finally we have the ELBO estimator for a single datapoint $\bold{x}^{(i)}$:
+        The estimator for the ELBO of a single datapoint $\bold{x}^{(i)}$:
 
         \begin{align*}
             \hat{\mathcal{L}}(\pmb{\theta}, \pmb{\phi}; \bold{x}^{(i)}) 
@@ -241,7 +276,7 @@
             \right).
         \end{align*}
 
-        <h4>ELBO Estimator for the Training Set</h4>
+        <h4>Estimator for ELBO of the Whole Training Set</h4>
 
         We can estimate the evidence lower bound of the whole dataset $\bold{X} = \{ \bold{x}^{(i)}\}_{i=1}^N$
         by randomly selecting a minibatch of size $M$ (also a hyperparameter).
@@ -254,7 +289,8 @@
         \end{align*}
 
         Here $\frac{1}{M} \sum_{j=1}^M \hat{\mathcal{L}}(\pmb{\theta}, \pmb{\phi}; \bold{x}^{(j)})$
-        is the minibatch estimate of the single point ELBO. <br><br>
+        is the minibatch estimate of the single point ELBO. Without $N$, we'd have an estimator for the mean single point ELBO, but as it stands,
+        in the paper they include $N$ in their loss. Either probably works.<br><br>
 
         <b>Proof</b>: <br>
 
@@ -273,7 +309,7 @@
         
         In the second line we assumed the dataset is i.i.d. and in the last line we invoked 
         $\log p_{\bold{\theta}}(\bold{x}^{(i)}) \geq \mathcal{L}(\pmb{\theta}, \pmb{\phi}; \bold{x}^{(i)})$
-        for all $\bold{x}^{(i)}$.
+        for all $i$.
         Replace single point ELBOs $\mathcal{L}(\pmb{\theta}, \pmb{\phi}; \bold{x}^{(i)})$ in the last line
         with the minibatch version $\frac{1}{M} \sum_{j=1}^M \mathcal{L}(\pmb{\theta}, \pmb{\phi}; \bold{x}^{(j)})$ 
         and we have
@@ -296,17 +332,7 @@
 
     <hr>
 
-    <section id="generative-modeling">
-        <h3>Generative Modeling</h3>
-
-        <p>In an ideal world, we'd like to sample from the true posterior $p(\bold{z}|\bold{x})$, 
-            but we don't have access to it. The good news is that optimizing the ELBO encourages 
-            the learned posterior to be similar in form to the prior, giving us some assurance that
-            the decoder can generate novel datapoints which are in-distribution using latents drawn 
-            from the prior. 
-        </p> 
-
-    </section>
+    
 
 </body>
 
