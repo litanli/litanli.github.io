@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="../style.css" />
+
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+        integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"
+        integrity="sha384-cpW21h6RZv/phavutF+AuVYrr+dA8xD9zs6FwLpaCct6O9ctzYFfFr4dgmgccOTx"
+        crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+        integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05"
+        crossorigin="anonymous"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            renderMathInElement(document.body, {
+                // auto-render specific keys
+                delimiters: [
+                    { left: '$$', right: '$$', display: true },
+                    { left: '$', right: '$', display: false },
+                    { left: '\\(', right: '\\)', display: false },
+                    { left: '\\[', right: '\\]', display: true },
+                    { left: "\\begin{equation}", right: "\\end{equation}", display: true },
+                    { left: "\\begin{equation*}", right: "\\end{equation*}", display: true },
+                    { left: "\\begin{align}", right: "\\end{align}", display: true },
+                    { left: "\\begin{align*}", right: "\\end{align*}", display: true },
+                    { left: "\\begin{gather}", right: "\\end{gather}", display: true },
+                    { left: "\\begin{CD}", right: "\\end{CD}", display: true },
+                ],
+                // rendering keys
+                throwOnError: false,
+                fleqn: true // display math renders flush left with a 2em left margin   
+            });
+        });
+    </script>
+
+
+    <title>Latent Spaces and the ELBO</title>
+
+</head>
+
+<body>
+    <a class="button" href="../index.html">
+        <button>Home</button>
+    </a>
+
+    <section id="title">
+        <h1>Structure Tensors and Coherence</h1>
+        <i>5/2024</i><br><br>
+    </section>
+
+    <hr>
+
+    <section id="intro">
+        <p>
+            Structure tensors are used in computer vision to measure the local 
+            similarity of gradient directions within a 2D image or 3D volume. 
+            These matrices are typically summarized into a 
+            scalar metric called the local coherence. If the pixel (voxel) 
+            gradients within a 2D (3D) patch point more or less in the same 
+            direction, then the coherence at that pixel (voxel) is high (vice 
+            versa). 
+        </p>
+        </p>    
+            The notation in this post are mostly borrowed from the 
+            <a href="https://en.wikipedia.org/wiki/Structure_tensor">structure tensor
+            </a> Wikipedia article, which gives some background
+            and simply states how coherence is calculated for 2D images.
+            What it lacks is an extension of the metric to 3D volumes/videos 
+            and an explanation of why the metric is calculated the way it is,
+            which we'll try to address here.
+         
+        </p>
+
+    </section>
+
+    <hr>
+
+    <section id="Usecases">
+        
+        <h3>Edges, Object Movement</h3>
+        <p>
+            Classical edge detection uses odd-sized kernels (Sobel, Scharr, 
+            etc.) to estimate the gradient of an image (a vector field). The 
+            technique relies on the assumption that pixel values change more 
+            rapidly across the edges of an object, leading to higher gradient 
+            magnitudes along an object's outline. 
+            Whereas the magnitude tells us where the edges are, the gradient 
+            <i>direction</i> tells us the orientation of the edges (recall 
+            gradients point in the direction of maximal change, i.e. 
+            perpendicular to an object's outline). It follows that coherence 
+            gives a measure of edge orientation uniformity within local 
+            patches, or how quickly objects move frame by frame in a video 
+            where the third axis is time.
+        </p>
+
+        <h3>Physical Interpretations</h3>
+        <p>
+            One application of coherence is in the study of wave propagation. 
+            At the interface between two isotropic media, waves reflect about a 
+            line that is perpendicular to the interface and parallel to the 
+            direction of maximal change in the velocity at which waves 
+            propagate through each media. The coherence gives a measure of the 
+            local uniformity of this interface's orientation ("Is the line of 
+            reflection more or less pointing in the same direction?").
+        </p>
+
+    </section>
+
+    <hr>
+
+    <section id="2D">
+        <h3>2D Structure Tensor</h3>
+
+        <p>
+            For a pixel $p=(x, y)$ from image $I(p)$, the 2D structure tensor 
+            <i>at that pixel</i> is defined as <br><br>
+            
+            \begin{equation*}
+            S(p) = \begin{bmatrix}
+                \sum_{r\in\sup(w)} w(r) [I_x(p-r)]^2 & \sum_{r\in\sup(w)} w(r) 
+                I_x(p-r)I_y(p-r) \\
+                \sum_{r\in\sup(w)} w(r) I_x(p-r)I_y(p-r) & \sum_{r\in\sup(w)} 
+                w(r) [I_y(p-r)]^2
+                \end{bmatrix}
+            \end{equation*} <br>
+            
+            where $w(r)$ is a window function and $I_x, I_y$ are the partial 
+            derivatives of $I$ in the $x$ and $y$ directions estimated by some 
+            gradient estimator like central differencing. $r=(x, y)$ is a 
+            position in the neighborhood around $p$ defined wherever $w(r)$ is 
+            non-zero. Since we're dealing with images sampled at discrete 
+            pixels, we omit the continuous version of the tensor for brevity. 
+            <br><br>
+
+            <b>Remark</b>: The structure tensor is essentially a covariance
+            matrix on $m$ datapoints and $n$ variables, where $m$ is the size
+            of the neighborhood $|\sup(w)|$ and $n=2$. The only minor 
+            difference is that we weigh each neighboring pixel via $w(r)$ 
+            instead of $1/m$. <br><br>
+            
+            From PCA we know that finding a new set 
+            of orthogonal axes that maximizes the variance of the data involves
+            using a Lagrange multiplier and solving a subsequent eigenvalue 
+            eigenvector problem on the covariance matrix. Since covariance 
+            matrices are positive semi-definite, its two eigenvalues 
+            $\lambda_1\geq\lambda_2$ will be non-negative and represent the 
+            variance of the data along each new axis (PC1, PC2). If $\lambda_1 
+            >> \lambda_2$ then the local gradients align along the first 
+            principal component and the coherence should be high. If $\lambda_1 
+            \approx \lambda_2$ then the local gradients have no dominant 
+            direction and coherence should be low. Indeed, Wikipedia gives the 
+            2D coherence formula as:
+
+            \begin{equation*}
+            c = \left(\frac{\lambda_1 - \lambda_2}{\lambda_1 + 
+                \lambda_2}\right)^2
+            \end{equation*}
+
+            <img src="./resources/coherence_2d.png"> <br><br>
+            Total variance $T = \lambda_1 + \lambda_2$
+        </p>
+    </section>
+
+    <hr>
+
+    <section id="3D">
+        <h3>3D Structure Tensor</h3>
+
+        <p>
+            The 3D structure tensor is a straightforward extension of the 2D. 
+            We have pixel $p=(x,y,z)$ from image $I(p)$ and 
+
+            \begin{equation*}
+            S(p) = \sum_{r\in\sup(w)} w(r) S_0(p-r)
+            \end{equation*}
+            where 
+
+            \begin{equation*}
+            S_0 = \begin{bmatrix}
+                [I_x(p)]^2 & I_x(p)I_y(p) & I_x(p)I_z(p) \\
+                I_x(p)I_y(p) & [I_y(p)]^2 & I_y(p)I_z(p) \\
+                I_x(p)I_z(p) & I_y(p)I_z(p) & [I_z(p)]^2
+                \end{bmatrix}
+            \end{equation*}
+
+            If $\lambda_1 >> \lambda_2, \lambda_3$ then coherence should be
+            high ($\lambda_1 \approx \lambda_2 \approx \lambda_3$, low). A
+            plausible formula for 3D coherence is:
+
+            \begin{equation*}
+            c = \left(\frac{\lambda_1 - (\lambda_2 + \lambda_3)}{
+                \lambda_1 + \lambda_2 + \lambda_3}\right)^2
+            \end{equation*}
+
+            <img src="./resources/coherence_3d.png"> <br><br>
+            
+            These are the contraints used to generate the plot above. <br><br>
+            Contraint on $\lambda_1$: $1/3 \leq \lambda_1/T \leq 1$ <br><br>
+            Contraints on $\lambda_2$: <br><br>
+
+            $\quad$The variance explained by PC2 and PC3 is $1-\lambda_1/T$. 
+            Since $\lambda_1 \geq \lambda_2 \geq \lambda_3$ by definition and 
+            $\lambda_1 + \lambda_2 + \lambda_3 = T$, <br>
+            $\quad$we have a lower bound on $\lambda_2$:<br> 
+            $\quad\lambda_2/T \geq (1-\lambda_1/T)/2$<br><br>
+            $\quad$For the upper bound, we have two inequalities that must be 
+            satisfied. First we have $\lambda_2/T \leq \lambda_1/T$ coming from 
+            $\quad\lambda_1 \geq \lambda_2 \geq \lambda_3$. Second we have 
+            $\lambda_1/T+\lambda_2/T+\lambda_3/T=1$ so  $\lambda_1/T + 
+            \lambda_2/T \leq 1$, or <br>
+            $\quad\lambda_2/T \leq -\lambda_1/T + 1$. Combining these two we 
+            have $\lambda_2 \leq \min(\lambda_1/T, -\lambda_1/T + 1)$.<br><br>
+
+            Finally $\lambda_3/T = 1 - \lambda_1/T - \lambda_2/T$.
+
+        </p>
+    </section>
+    <br>
+    <hr>
+</body>
+</html>
