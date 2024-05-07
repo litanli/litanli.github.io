@@ -159,10 +159,16 @@
 
             \begin{equation*}
             c = \left(\frac{\lambda_1 - \lambda_2}{\lambda_1 + 
-                \lambda_2}\right)^2
+                \lambda_2}\right) \tag{left plot}
             \end{equation*}
 
-            <img src="./resources/coherence_2d.png"> <br><br>
+            \begin{equation*}
+            c = \left(\frac{\lambda_1 - \lambda_2}{\lambda_1 + 
+                \lambda_2}\right)^2 \tag{right plot}
+            \end{equation*}
+
+            <img src="./resources/coherence_2d.png">
+            <img src="./resources/coherence_2d_sq.png"> <br><br>
             Total variance $T = \lambda_1 + \lambda_2$
         </p>
     </section>
@@ -190,17 +196,26 @@
             \end{equation*}
 
             If $\lambda_1 >> \lambda_2, \lambda_3$ then coherence should be
-            high ($\lambda_1 \approx \lambda_2 \approx \lambda_3$, low). A
-            plausible formula for 3D coherence is:
+            high ($\lambda_1 \approx \lambda_2 \approx \lambda_3$, low). Two
+            plausible formulae for 3D coherence are:
 
             \begin{equation*}
-            c = \left(\frac{\lambda_1 - (\lambda_2 + \lambda_3)}{
-                \lambda_1 + \lambda_2 + \lambda_3}\right)^2
-            \end{equation*}
+            c = \left(\frac{\lambda_1 - \lambda_2}{
+                \lambda_1 + \lambda_2 + \lambda_3}\right) \tag{left plot}
+            \end{equation*} 
 
-            <img src="./resources/coherence_3d.png"> <br><br>
+            \begin{equation*}
+            c = \left(\frac{\lambda_1 - \lambda_2}{
+                \lambda_1 + \lambda_2 + \lambda_3}\right)^2 \tag{right plot}
+            \end{equation*}
             
-            These are the contraints used to generate the plot above. <br><br>
+            
+            <br><br>
+
+            <img src="./resources/coherence_3d.png"> 
+            <img src="./resources/coherence_3d_sq.png"> <br><br>
+            
+            These are the contraints used to generate the plots above. <br><br>
             Contraint on $\lambda_1$: $1/3 \leq \lambda_1/T \leq 1$ <br><br>
             Contraints on $\lambda_2$: <br><br>
 
