@@ -5,22 +5,28 @@ html {
 }
 
 body {
-    font: 90% 'Source Sans Pro', Verdana, Arial;
+    font-family: 'Source Sans Pro', Verdana, Arial;
+    font-size: 1.1em;
     margin: auto;
-    color: rgb(74, 74, 74);
+    color: #4a4a4a;
     max-width: 50em;
     width: 100%;
+    line-height: 1.8;
+    background: rgb(255, 255, 255);
+    padding: 1.5em;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
 }
 
 a {
     border-bottom: none;
     text-decoration: none;
-    color: rgb(0, 68, 177);
+    color: rgb(177, 4, 14);
 }
 
 a:hover {
-    color: rgb(0, 68, 177);
-    text-decoration: underline;
+    color: rgb(177, 4, 14);
+    text-decoration: none;
 }
 
 /* section {
@@ -29,12 +35,16 @@ a:hover {
     background-color: #f2f2f2;
 } */
 
-table td {
-    padding-right: 1em;
+.container {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    text-align: justify;
 }
 
-footer {
-	border-top: 1px solid #e0e0e0;
-    font-size: 80%;
-    padding-bottom: none;
+/* Add responsive design and adjust for smaller screens */
+@media (max-width: 768px) {
+    .container {
+        grid-template-columns: 1fr;
+    }
 }
