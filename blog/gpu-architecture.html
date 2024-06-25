@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="../style.css" />
+
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+        integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"
+        integrity="sha384-cpW21h6RZv/phavutF+AuVYrr+dA8xD9zs6FwLpaCct6O9ctzYFfFr4dgmgccOTx"
+        crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+        integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05"
+        crossorigin="anonymous"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            renderMathInElement(document.body, {
+                // auto-render specific keys
+                delimiters: [
+                    { left: '$$', right: '$$', display: true },
+                    { left: '$', right: '$', display: false },
+                    { left: '\\(', right: '\\)', display: false },
+                    { left: '\\[', right: '\\]', display: true },
+                    { left: "\\begin{equation}", right: "\\end{equation}", display: true },
+                    { left: "\\begin{equation*}", right: "\\end{equation*}", display: true },
+                    { left: "\\begin{align}", right: "\\end{align}", display: true },
+                    { left: "\\begin{align*}", right: "\\end{align*}", display: true },
+                    { left: "\\begin{gather}", right: "\\end{gather}", display: true },
+                    { left: "\\begin{CD}", right: "\\end{CD}", display: true },
+                ],
+                // rendering keys
+                throwOnError: false,
+                fleqn: true // display math renders flush left with a 2em left margin   
+            });
+        });
+    </script>
+
+
+    <title>Latent Spaces and the ELBO</title>
+
+</head>
+
+<body>
+    <a class="button" href="../index.html">
+        <button>Home</button>
+    </a>
+
+    <section id="title">
+        <h1>Basic GPU Architecture and CUDA Kernels</h1>
+        <i>6/2024</i><br><br>
+    </section>
+
+    <hr>
+
+    <section id="intro">
+        <p>
+            In this post, I'll talk about some computing history and 
+            introduce basic GPU architecture concepts needed for 
+            writing CUDA kernels, including physical and logical organization
+            and memory hierarchy. CUDA kernels are functions that run directly 
+            on NVIDIA GPU cores. Most of the syntax is the same as C/C++, 
+            along with key utilities
+            like GPU memory management and thread synchronization provided by 
+            the CUDA runtime API. I'll also touch upon GPU profiling using
+            NVIDIA's Nsight Systems, and show a few basic kernels.
+        </p>
+        
+
+    </section>
+
+    <hr>
+
+    <section>
+        
+        <h3>CPU History</h3>
+        <p>
+            It's useful to get a sense of the history of computing to understand
+            where GPUs fit in the landscape. Probably most of this is 
+            not new to you, but I just want to highlight a few points. Here's 
+            a graph showing progress along Moore's law, pulled from Wikipedia's page on 
+            transistor count. 
+        </p> <br>
+
+        <img src="./resources/moores-law.png">
+
+        <p>
+            Although single-core clock rates have improved from MHz to 5 Ghz 
+            from the 1980s to the 2020s, clock rates are upper-bounded by
+            thermal dissipation as transistor density increases (chips will
+            burn if you run them too hot!), and the fact that transistor power 
+            draw follows a power law where the exponent is greater than 1 (
+            $P\varpropto f^{k}$ where $k$ is typically 2 to 3). Instead of 
+            increasing single-core clock rates to the moon, it's more 
+            power-efficient to design chips with multiple "medium" 
+            frequency cores. This is the key driving principle 
+            behind multi-core processor designs and the philosophy is to 
+            allow increased overall throughput 
+            via parallelism while maintaining single-core performance for 
+            non-parallel programs. So in 2001, IBM developed the 
+            first dual-core processor, and in 2004 Intel shipped the first 
+            commercial dual-core processor, the Pentium D. 
+        </p>
+       
+
+    </section>
+    <hr>
+    <section>
+        <h3>Heterogenous Processors and GPU History</h3>
+        <p>
+            Modern computer architectures have a variety of processors, organized
+            into a variety of hardware units:
+            <li>
+                A typical server has a multi-core CPU plus one or multiple 
+                interconnected server-grade GPUs (A100, H100, etc.), with a hypervisor managing
+                virtualization of processor, memory and file system resources.
+            </li> 
+            <li>
+                Intel CPUs have Performance Cores and Efficiency Cores.
+            </li>
+            <li>NVIDIA GPUs have CUDA cores (graphics, general purpose) and 
+                Tensor cores (matrix ops)</li>
+            <li>Google TPUs optimize for matrix operations</li>
+            <li>FPGAs are reconfigurable, semi-general purpose chips</li>
+        </p>
+        <p>
+            We even have CPU chips that support both the x86 and ARM ISA<sup>1</sup>. 
+            There's a lot of heterogeneity because processors are designed to be
+            efficient on specific workloads and cores have become more 
+            workload-dependent. In fact, the term "dark processors" refers to 
+            heterogenous processors where only a subset of cores draw 
+            electricity at a time. Within this context, GPUs 
+            have obviously become an important player: 
+        </p>
+        <p>
+            <li>1999 - NVIDIA releases world's first commercial GPU</li>
+            <li>2001 - beginning of general purpose programming on GPUs (GPGPU), 
+                "more than just graphics and video games", dark times where
+                only rudimentary GPU programming support existed for developers
+            </li>
+            <li>
+                2003 - two independent research groups report matrix operations 
+                running faster on GPU than CPU
+            </li>
+            <li>
+                2006 - NVIDIA releases the CUDA API and runtime v1.0, an 
+                extension of C syntax for writing functions (kernels) that run 
+                on GPU threads
+            </li>
+        </p>
+        <p>
+            Like all modern architectures outside of quantum computing, 
+            GPUs follow the classical von Neumann model proposed in "First Draft 
+            of a Report on the EDVAC" (von Neumann, 1945) where instructions and 
+            data are stored in a memory system and fetched by one or multiple  
+            control units. However, GPUs have much higher theoretical throughput 
+            due to <i>much</i> higher core count, even though each core runs 
+            slower than a CPU core.
+
+            <li>CPU: 12-96 cores, 5Ghz each</li>
+            <li>A100: 6912 CUDA cores, 432 Tensor cores, 1065 Mhz each</li>
+            <li>H100: 14592 CUDA cores, 456 Tensor cores, 1095 Mhz each</li>
+
+        </p>
+
+        <sup>1</sup>Instruction set architectures (ISA) are neither hardware
+        nor software, but a <i>specification</i> of what low level instructions
+        a CPU should support. Amongst the key players x86, ARM and RISC-V 
+        (UC Berkeley, 2010), RISC-V is open-sourced and many find its 
+        non-bloatedness appealing! For example, 
+        <a href="https://tenstorrent.com/">Tenstorrent</a> makes GPUs 
+        following RISC-V as a cheaper alternative to NVIDIA.
+    </section>
+    <br>
+    <hr>
+</body>
+</html>
