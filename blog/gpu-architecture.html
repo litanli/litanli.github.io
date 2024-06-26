@@ -38,10 +38,6 @@
             });
         });
     </script>
-
-
-    <title>Latent Spaces and the ELBO</title>
-
 </head>
 
 <body>
@@ -76,11 +72,11 @@
 
     <section>
         
-        <h3>CPU History</h3>
+        <h2>CPU History</h2>
         <p>
             It's useful to get a sense of the history of computing to understand
             where GPUs fit in the landscape. Probably most of this is 
-            not new to you, but I just want to highlight a few points. Here's 
+            not new to you. Here's 
             a graph showing progress along Moore's law, pulled from Wikipedia's page on 
             transistor count. 
         </p> <br>
@@ -91,32 +87,29 @@
             Although single-core clock rates have improved from MHz to 5 Ghz 
             from the 1980s to the 2020s, clock rates are upper-bounded by
             thermal dissipation as transistor density increases (chips will
-            burn if you run them too hot!), and the fact that transistor power 
-            draw follows a power law where the exponent is greater than 1 (
-            $P\varpropto f^{k}$ where $k$ is typically 2 to 3). Instead of 
-            increasing single-core clock rates to the moon, it's more 
-            power-efficient to design chips with multiple "medium" 
-            frequency cores. This is the key driving principle 
-            behind multi-core processor designs and the philosophy is to 
-            allow increased overall throughput 
-            via parallelism while maintaining single-core performance for 
-            non-parallel programs. So in 2001, IBM developed the 
-            first dual-core processor, and in 2004 Intel shipped the first 
-            commercial dual-core processor, the Pentium D. 
+            burn if you run them too hot!), and by the fact that transistor power 
+            draw follows a power law ($P\varpropto f^{k}$ where $k$ is typically 
+            2 to 3). Instead of increasing single-core clock rates to the moon, 
+            it's more power-efficient to design chips with multiple "medium" 
+            frequency cores. This is the driving principle behind 
+            multi-core processor designs and the philosophy is to allow 
+            increased overall throughput via parallelism while maintaining 
+            single-core performance for non-parallel programs. IBM developed
+            the first dual-core processor in 2001, and Intel shipped the
+            Pentium D in 2004.
         </p>
        
 
     </section>
     <hr>
     <section>
-        <h3>Heterogenous Processors and GPU History</h3>
+        <h2>Heterogenous Processors and GPU History</h2>
         <p>
             Modern computer architectures have a variety of processors, organized
             into a variety of hardware units:
             <li>
                 A typical server has a multi-core CPU plus one or multiple 
-                interconnected server-grade GPUs (A100, H100, etc.), with a hypervisor managing
-                virtualization of processor, memory and file system resources.
+                interconnected server-grade GPUs
             </li> 
             <li>
                 Intel CPUs have Performance Cores and Efficiency Cores.
@@ -127,8 +120,9 @@
             <li>FPGAs are reconfigurable, semi-general purpose chips</li>
         </p>
         <p>
-            We even have CPU chips that support both the x86 and ARM ISA<sup>1</sup>. 
-            There's a lot of heterogeneity because processors are designed to be
+            
+            We even have chips that support multiple ISAs<sup>1</sup>.
+            There's lots of heterogeneity because processors are designed to be
             efficient on specific workloads and cores have become more 
             workload-dependent. In fact, the term "dark processors" refers to 
             heterogenous processors where only a subset of cores draw 
@@ -136,17 +130,17 @@
             have obviously become an important player: 
         </p>
         <p>
-            <li>1999 - NVIDIA releases world's first commercial GPU</li>
-            <li>2001 - beginning of general purpose programming on GPUs (GPGPU), 
+            <li>1999: NVIDIA releases world's first commercial GPU</li>
+            <li>2001: beginning of general purpose programming on GPUs (GPGPU), 
                 "more than just graphics and video games", dark times where
                 only rudimentary GPU programming support existed for developers
             </li>
             <li>
-                2003 - two independent research groups report matrix operations 
+                2003: two independent research groups report matrix operations 
                 running faster on GPU than CPU
             </li>
             <li>
-                2006 - NVIDIA releases the CUDA API and runtime v1.0, an 
+                2006: NVIDIA releases the CUDA API and runtime v1.0, an 
                 extension of C syntax for writing functions (kernels) that run 
                 on GPU threads
             </li>
@@ -156,23 +150,78 @@
             GPUs follow the classical von Neumann model proposed in "First Draft 
             of a Report on the EDVAC" (von Neumann, 1945) where instructions and 
             data are stored in a memory system and fetched by one or multiple  
-            control units. However, GPUs have much higher theoretical throughput 
-            due to <i>much</i> higher core count, even though each core runs 
-            slower than a CPU core.
+            control units. However, GPUs have much higher theoretical 
+            throughput<sup>2</sup> due to <i>much</i> higher core count, even 
+            though each core runs slower than a CPU core.
 
-            <li>CPU: 12-96 cores, 5Ghz each</li>
-            <li>A100: 6912 CUDA cores, 432 Tensor cores, 1065 Mhz each</li>
-            <li>H100: 14592 CUDA cores, 456 Tensor cores, 1095 Mhz each</li>
+            <li>CPU: 12-96 cores, 5GHz each</li>
+            <li>A100: 6912 CUDA cores, 432 Tensor cores, 1065 MHz each</li>
+            <li>H100: 14592 CUDA cores, 456 Tensor cores, 1095 MHz each</li>
 
         </p>
 
-        <sup>1</sup>Instruction set architectures (ISA) are neither hardware
-        nor software, but a <i>specification</i> of what low level instructions
-        a CPU should support. Amongst the key players x86, ARM and RISC-V 
-        (UC Berkeley, 2010), RISC-V is open-sourced and many find its 
-        non-bloatedness appealing! For example, 
-        <a href="https://tenstorrent.com/">Tenstorrent</a> makes GPUs 
-        following RISC-V as a cheaper alternative to NVIDIA.
+        <sup id="fn1">
+            1. Instruction set architectures (ISAs) are neither hardware
+            nor software, but a <i>specification</i> of what low level instructions
+            a CPU should support. Amongst the key players x86, ARM and RISC-V 
+            (UC Berkeley, 2010), RISC-V is open-sourced and many find its 
+            non-bloatedness appealing! For example, 
+            <a href="https://tenstorrent.com/">Tenstorrent</a> makes GPUs 
+            following RISC-V as a cheaper alternative.
+        </sup>
+        <br>
+
+        <sup>
+            2. Whereas throughput (measured in floating point 
+            operations per second, or FLOPS) in practice is often bottle-necked by 
+            memory bandwidth.
+        </sup>
+    </section>
+    <hr>
+    <section>
+        <h2>Memory Hardware</h2>
+        <p>
+            Physical memory is arranged as an array of memory cells, which is 
+            why almost all data structures are fundamentally arrays plus data 
+            structure-specific algorithms implementing the data structure's 
+            interface. GPUs use dynamic random access memory (DRAM) for its 
+            global memory and static random access memory (SRAM) for caches.
+            In both cases, single bits are stored in memory cells, but the 
+            physical implementation of memory cells differ and lead to 
+            differences in latency and manufacturing cost. 
+        </p>
+
+        <h3>DRAM</h3>
+        <p>
+            When people say "this GPU has 80GB of memory", they're 
+            referring to the size of the GPU's global memory, which uses 2D or 
+            3D arrays of DRAM memory cells. These cells are small, consisting of 
+            1 capacitor and 1 transistor, making them cheaper to manufacture and 
+            have higher capacity. The mechanism for storing a bit relies on 
+            charging and discharging the memory cell's capacitor. One reason 
+            that DRAM cells have higher latency compared to SRAM cells is 
+            because they lose charge and require a recharge after every read.
+            The entire array also loses partial charge over time and require 
+            periodic refreshes to maintain data integrity (on-the-fly, hence 
+            the "dynamic" in DRAM). 
+        </p>
+
+        <h3>SRAM</h3>
+        <p>
+            SRAM cells are big. Each cell consists of 6 transistors making 
+            them lower capacity for the same die size, and more costly to 
+            manufacture. They also draw more power than DRAM cells. The upside 
+            is that the 6 transistors are arranged as a flip-flop circuit that 
+            can represent binary states and be very quickly read, making SRAM 
+            cells have much lower latency. On GPUs, SRAM is used for register
+            memory and L1/L2 caches.
+        </p>
+        <p>
+            So DRAM is big but slow while SRAM is small but fast. In general 
+            there's a trade-off between latency and capacity, and designers take 
+            into account manufacturing cost and how much die size the memory chip 
+            needs, which is a precious commodity in chip design. 
+        </p>
     </section>
     <br>
     <hr>

@@ -38,10 +38,6 @@
             });
         });
     </script>
-
-
-    <title>Generative Modeling with Variational Autoencoders</title>
-
 </head>
 
 <body>
@@ -50,7 +46,7 @@
     </a>
 
     <section id="title">
-        <h1>Generative Modeling with Variational Autoencoders</h1>
+        <h1>Generative Sampling with Variational Autoencoders</h1>
     </section>
 
     <hr>
@@ -74,8 +70,8 @@
 
     <hr>
 
-    <section id="generative-modeling">
-        <h3>Generative Modeling</h3>
+    <section id="generative-sampling">
+        <h2>Sampling</h2>
 
         Before diving into the math, here's a blurb about how to generate datapoints with the VAE framework.
 
@@ -110,7 +106,7 @@
     <hr>
 
     <section id="section 1">
-        <h3>Setup</h3>
+        <h2>Setup</h2>
 
         <p>
             Given a dataset $\bold{X}=\{\bold{x}^{(i)}\}_{i=1}^N$ consisting of $N$ i.i.d. samples,
@@ -159,15 +155,16 @@
     <hr>
 
     <section id="section 2">
-        <h3>The ELBO Estimator</h3>
+        <h2>The ELBO Estimator</h2>
+        <br>
 
         We have $\log p_{\pmb{\theta}}(\bold{x}^{(i)}) \geq \mathcal{L}(\pmb{\theta}, \pmb{\phi}; \bold{x}^{(i)})$,
         where $\mathcal{L}(\pmb{\theta}, \pmb{\phi}; \bold{x}^{(i)})$ is the ELBO for sample $\bold{x}^{(i)}$.
         Since $\mathcal{L}$ is a lower bound, maximizing $\mathcal{L}$ w.r.t. $\pmb{\theta}$ and $\pmb{\phi}$
         serves as a proxy for maximizing the marginal likelihood of $\bold{x}^{(i)}$. Here we derive Kingma and Welling's
-        estimator for the ELBO.
+        estimator for the ELBO. <br><br>
 
-        <h4>ELBO for a Single Datapoint $\bold{x}^{(i)}$</h4>
+        <h3>ELBO for a Single Datapoint $\bold{x}^{(i)}$</h3>
 
         \begin{align*}
         \mathcal{L}(\pmb{\theta}, \pmb{\phi}; \bold{x}^{(i)}) = \underbrace{
@@ -183,9 +180,9 @@
         The optimization is formulated as a joint optimization over parameters $\bold{\theta}$ and
         $\pmb{\phi}$ of a probabilistic encoder $q_{\pmb{\phi}}$ and probabilistic decoder
         $p_{\pmb{\theta}}$. By joint optimization we mean that after every backward pass, we perform
-        a gradient update on both $\pmb{\theta}$ and $\pmb{\phi}$.
+        a gradient update on both $\pmb{\theta}$ and $\pmb{\phi}$. <br><br>
 
-        <h4>Calculating the KL Divergence Term</h4>
+        <h3>Calculating the KL Divergence Term</h3>
 
         Suppose the probabilistic encoder $q_{\pmb{\phi}}$ consists of a two-headed neural net
         parameterizing an isotropic, multivariate Gaussian distribution. Recall $q_{\pmb{\phi}}$
@@ -226,7 +223,7 @@
         \right)
         \end{align*}
 
-        <h4>Estimating the Reconstruction Term</h4>
+        <h3>Estimating the Reconstruction Term</h3>
 
         The sample mean is an unbiased estimator of the expectation.
         We can simply estimate the reconstruction term with $L$ samples drawn from
@@ -280,7 +277,7 @@
         \right).
         \end{align*}
 
-        <h4>Estimator for ELBO of the Whole Training Set</h4>
+        <h3>Estimator for ELBO of the Whole Training Set</h3>
 
         We can estimate the evidence lower bound of the whole dataset $\bold{X} = \{ \bold{x}^{(i)}\}_{i=1}^N$
         by randomly selecting a minibatch of size $M$ (also a hyperparameter).
