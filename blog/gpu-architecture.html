@@ -160,7 +160,7 @@
 
         </p>
 
-        <sup id="fn1">
+        <sup>
             1. Instruction set architectures (ISAs) are neither hardware
             nor software, but a <i>specification</i> of what low level instructions
             a CPU should support. Amongst the key players x86, ARM and RISC-V 
@@ -170,7 +170,6 @@
             following RISC-V.
         </sup>
         <br>
-
         <sup>
             2. Whereas throughput (measured in floating point 
             operations per second, or FLOPS) in practice is often bottle-necked by 
@@ -207,10 +206,10 @@
         </p>
         <p>
             How DRAM cells are stacked together also differs. Most consumer 
-            cards such at the RTX series use GDDR6, composed of a traditional 
+            cards such at the GeForce RTX series use GDDR6, which uses a traditional 
             2D arrangement of cells. Server grade devices like the A100 and 
-            H100 use HBM2e (high bandwidth memory), stacking DRAM cells in a 3D 
-            arrangement to reduce its form factor, travel distance between 
+            H100 use HBM (high-bandwidth memory), stacking DRAM cells in a 3D 
+            arrangement. This reduce its form factor, travel distance between 
             cells and bus pins, and latency (at the cost of a more expensive 
             and complex and manufacturing process).
         </p>
@@ -249,20 +248,77 @@
         </p>
 
         <p>
-
+            CPU and GPU chips contain several levels of memory, exhibiting the familiar 
+            characteristics of "small and fast" to "big and slow". Here we 
+            show a 24-core CPU with 3 levels of caching, including a massive 
+            L3 cache shared between all the physical cores. Remember that the 
+            design philosophy of multi-core CPUs is to increase overall throughput
+            by giving programmers the option to write and run parallel code, 
+            while maintaining low latency and high single-core throughput for non-parallel 
+            programs. Part of this low latency is achieved by massive (MB range) 
+            caches enabling as many cache hits as possible during program execution. 
+            The biggest and slowest memory is your laptop/server's main memory, 
+            which is connected 
+            to your CPU via a memory bus soldered onto the motherboard. At a high
+            level, three things contribute to low latency: 1) physical proximity 
+            to the ALUs and FPUs incur less travel time, 2) smaller caches 
+            incur less overhead for cache line lookups and for ensuring cache 
+            consistency, and 3) using SRAM cells over DRAM.            
         </p>
+
+        <img src="./resources/cpu-arch.png"></img>
+
+        <p>
+            GPUs have a similar architecture with a few key differences - 
+            the obvious being several orders of magnitude more cores. 
+            These CUDA cores are bundled into physical units called streaming 
+            multiprocessors (SMs), each of which has its own control unit and 
+            and a small piece of SRAM split between the L1 cache and 
+            Shared Memory. Logically, threads are organized into warps, warps 
+            into blocks, and blocks into a single grid. Blocks are assigned 
+            wholesale to SMs, i.e. all warps within a block are guaranteed to 
+            be assigned to the same SM. Thus a common kernel pattern involves 
+            multiple threads cooperatively loading data into 
+            Shared Memory, a thread synchronization call to block each thread until 
+            all threads have finished loading their shards, followed by 
+            SIMD<sup>1</sup> parallel execution. This makes inter-SM communication 
+            not supported as a first-class citizen, and is meant to simplify 
+            the compute model (since communication between threads scheduled 
+            on different SMs would require additional hardware support on the 
+            die). One somewhat hacky way to get around this is to use atomic
+            operations on a variable in global memory, in which case one thread 
+            can write a message at the variable's memory offset and any another 
+            thread can read it.
+        </p>
+
+        
+
+        <img src="./resources/gpu-arch.png"></img>
+
+        <p>
+            Memory bandwidth computation.
+            PCIe bandwidth 
+
+            1024 threads/block since CUDA 3.0.
+
+            Inter-SM communication not a 
+        </p>
+
+
+        <sup>
+            1. Single instruction multiple data (SIMD) parallel processing differs 
+            from single program multiple data (SPMD) in that not only is the 
+            same program being run on multiple shards of data simultaneously, 
+            the same sequence of instructions are being issued and followed by 
+            all threads in lockstep. This makes limiting control divergence 
+            within single warps a performance consideration, which we'll talk 
+            about later. The most common example of SPMD is MPI.
+        </sup>
 
 
         
     </section>
-
     <hr>
-
-
-
-
-
-
     <section>
         <h2>Resources and References</h2>
         <p>
@@ -294,19 +350,8 @@
                 from its Nsight Compute kernel profiler documentation provides
                 even more low-level details.
             </li>
-
-            
-            
-
         </p>
-
-        
     </section>
-
-
-
-
-
     <br>
     <hr>
 </body>
