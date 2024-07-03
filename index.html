@@ -58,6 +58,14 @@
         <section id="blog">
             <h2>Blog</h2>
             <article>
+                <h3><a href="blog/gpu-architecture.html">Basic GPU Architecture and CUDA Kernels (WIP)</a></h3>
+                This post introduces basic GPU architecture concepts needed for 
+                writing CUDA kernels, such as physical hardware organization, 
+                logical organization/the CUDA compute model, and GPU memory 
+                hierarchy. I'll also touch upon GPU profiling using NVIDIA's Nsight Systems, 
+                and show a few basic kernels.
+            </article> <br>
+            <article>
                 <h3><a href="blog/coherence.html">Structure Tensors and Coherence</a></h3>
                 Structure tensors are used in computer vision to measure the local 
                 similarity of gradient directions within a 2D image or 3D volume. 
@@ -65,7 +73,6 @@
                 called the local coherence. Here I show how coherence is closely
                 tied to pixel-wise principal component analysis. 
             </article> <br>
-            
             <article>
                 <h3><a href="blog/vae.html">Generative Sampling with Variational Autoencoders</a></h3>
                 Previously we derived the evidence lower bound (ELBO). The 
