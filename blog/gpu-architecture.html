@@ -54,12 +54,12 @@
 
     <section id="intro">
         <p>
-            In this post, I'll talk about some computing history and 
-            introduce basic GPU architecture concepts needed for 
-            writing CUDA kernels, including physical and logical organization
-            and memory hierarchy. CUDA kernels are functions that run directly 
-            on NVIDIA GPU cores. Most of the syntax is the same as C/C++, 
-            along with key utilities
+            In this post I'll talk about some computing history and 
+            introduce the basic GPU architecture concepts needed for 
+            writing CUDA kernels, such as physical hardware organization, logical 
+            organization/compute model, and memory hierarchy. CUDA kernels are 
+            functions that run directly on NVIDIA GPUs. Most of the syntax is 
+            the same as C/C++, along with key utilities
             like GPU memory management and thread synchronization provided by 
             the CUDA runtime API. I'll also touch upon GPU profiling using
             NVIDIA's Nsight Systems, and show a few basic kernels.
@@ -108,41 +108,41 @@
             Modern computer architectures have a variety of processors, organized
             into a variety of hardware units:
             <li>
-                A typical server has a multi-core CPU plus one or multiple 
-                interconnected server-grade GPUs
+                A typical server has a multi-core CPU plus one or more GPUs 
+                connected via PCIe or NVLink.
             </li> 
             <li>
                 Intel CPUs have Performance Cores and Efficiency Cores.
             </li>
             <li>NVIDIA GPUs have CUDA cores (graphics, general purpose) and 
-                Tensor cores (matrix ops)</li>
+                Tensor cores (matrix ops).</li>
             <li>Google TPUs optimize for matrix operations</li>
-            <li>FPGAs are reconfigurable, semi-general purpose chips</li>
+            <li>FPGAs are reconfigurable, semi-general purpose chips.</li>
         </p>
         <p>
             
             We even have chips that support multiple ISAs<sup>1</sup>.
             There's lots of heterogeneity because processors are designed to be
-            efficient on specific workloads and cores have become more 
+            efficient on specific workloads and cores have become increasingly  
             workload-dependent. In fact, the term "dark processors" refers to 
             heterogenous processors where only a subset of cores draw 
             electricity at a time. Within this context, GPUs 
             have obviously become an important player: 
         </p>
         <p>
-            <li>1999: NVIDIA releases world's first commercial GPU</li>
+            <li>1999: NVIDIA releases world's first commercial GPU.</li>
             <li>2001: beginning of general purpose programming on GPUs (GPGPU), 
                 "more than just graphics and video games", dark times where
-                only rudimentary GPU programming support existed for developers
+                only rudimentary GPU programming support existed for developers.
             </li>
             <li>
                 2003: two independent research groups report matrix operations 
-                running faster on GPU than CPU
+                running faster on GPU than CPU.
             </li>
             <li>
                 2006: NVIDIA releases the CUDA API and runtime v1.0, an 
-                extension of C syntax for writing functions (kernels) that run 
-                on GPU threads
+                extension of C syntax for writing functions that run 
+                on GPU threads.
             </li>
         </p>
         <p>
@@ -165,9 +165,9 @@
             nor software, but a <i>specification</i> of what low level instructions
             a CPU should support. Amongst the key players x86, ARM and RISC-V 
             (UC Berkeley, 2010), RISC-V is open-sourced and many find its 
-            non-bloatedness appealing! For example, 
+            non-bloatedness appealing. For example, 
             <a href="https://tenstorrent.com/">Tenstorrent</a> makes GPUs 
-            following RISC-V as a cheaper alternative.
+            following RISC-V.
         </sup>
         <br>
 
@@ -182,13 +182,13 @@
         <h2>Memory Hardware</h2>
         <p>
             Physical memory is arranged as an array of memory cells, which is 
-            why almost all data structures are fundamentally arrays plus data 
-            structure-specific algorithms implementing the data structure's 
+            why almost all data structures are fundamentally arrays plus 
+            specific algorithms implementing the data structure's 
             interface. GPUs use dynamic random access memory (DRAM) for its 
             global memory and static random access memory (SRAM) for caches.
             In both cases, single bits are stored in memory cells, but the 
             physical implementation of memory cells differ and lead to 
-            differences in latency and manufacturing cost. 
+            differences in performance. 
         </p>
 
         <h3>DRAM</h3>
@@ -205,24 +205,94 @@
             periodic refreshes to maintain data integrity (on-the-fly, hence 
             the "dynamic" in DRAM). 
         </p>
+        <p>
+            How DRAM cells are stacked together also differs. Most consumer 
+            cards such at the RTX series use GDDR6, composed of a traditional 
+            2D arrangement of cells. Server grade devices like the A100 and 
+            H100 use HBM2e (high bandwidth memory), stacking DRAM cells in a 3D 
+            arrangement to reduce its form factor, travel distance between 
+            cells and bus pins, and latency (at the cost of a more expensive 
+            and complex and manufacturing process).
+        </p>
 
         <h3>SRAM</h3>
         <p>
-            SRAM cells are big. Each cell consists of 6 transistors making 
-            them lower capacity for the same die size, and more costly to 
+            SRAM cells are big. Each cell consists of 6 transistors (hence the 
+            name 6T SRAM cells) making them lower capacity for the same die 
+            size, and more costly to 
             manufacture. They also draw more power than DRAM cells. The upside 
             is that the 6 transistors are arranged as a flip-flop circuit that 
             can represent binary states and be very quickly read, making SRAM 
             cells have much lower latency. On GPUs, SRAM is used for register
-            memory and L1/L2 caches.
+            memory and the level caches.
         </p>
         <p>
             So DRAM is big but slow while SRAM is small but fast. In general 
             there's a trade-off between latency and capacity, and designers take 
-            into account manufacturing cost and how much die size the memory chip 
-            needs, which is a precious commodity in chip design. 
+            into account manufacturing cost, thermal dissipation, total power 
+            draw, and how much die size the memory chip needs, which is a 
+            precious commodity in chip design. 
         </p>
     </section>
+    <hr>
+    <section>
+        <h2>GPU Architecture</h2>
+        <p>
+            Outside of quantum computing, modern computer architectures 
+            fundamentally have not changed since the von Neumann model 
+            ("First Draft of a Report on the EDVAC", von Neumann, 1945). 
+            In said model, instructions and data stored in contiguous arrays are 
+            fetched and executed by one or multiple processing units. If you're 
+            interested in a bit of computer architecture history, you can read 
+            a revised version of the report
+            <a href="https://web.mit.edu/STS.035/www/PDFs/edvac.pdf">here</a>.
+        </p>
+
+        <p>
+
+        </p>
+
+
+        
+    </section>
+
+    <hr>
+
+
+
+
+
+
+    <section>
+        <h2>Resources and References</h2>
+        <p>
+            <li>
+                Most of this stuff came from 
+                "Programming on Massively Parallel Processors: A Hands-On Approach" 
+                by Hwu, Kirk and Hajj, which is probably a well-known book 
+                amongst CUDA programmers. I first stumbled upon it through a 
+                post from Andrej Karpathy on X shortly after his release of llm.c.
+            </li>
+            <li>
+                The architecture diagrams were made with the excellent 
+                <a href="https://excalidraw.com/">Excalidraw</a>.
+            </li>
+            <li>
+                Simon Boehm's <a href="https://siboehm.com/articles/22/CUDA-MMM">CUDA Matmul</a> blog post goes through multiple iterations 
+                of a matrix multiply kernel that comes close to parity with 
+                cuBLAS. It's a great next step after reading Part I of the book.
+            </li>
+            
+
+        </p>
+
+        
+    </section>
+
+
+
+
+
     <br>
     <hr>
 </body>
