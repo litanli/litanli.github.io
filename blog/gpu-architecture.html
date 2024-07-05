@@ -274,8 +274,9 @@
             These CUDA cores are bundled into physical units called streaming 
             multiprocessors (SMs), each of which has its own control unit and 
             and a small piece of SRAM split between the L1 cache and 
-            Shared Memory. Logically, threads are organized into warps, warps 
-            into blocks, and blocks into a single grid. Blocks are assigned 
+            Shared Memory. Logically, threads are organized into warps of 32 
+            threads, warps into blocks, and blocks into a single grid. Each block 
+            can have a maximum of 1024 threads and are assigned 
             wholesale to SMs, i.e. all warps within a block are guaranteed to 
             be assigned to the same SM. Thus a common kernel pattern involves 
             multiple threads cooperatively loading data into 
@@ -291,19 +292,7 @@
             thread can read it.
         </p>
 
-        
-
-        <img src="./resources/gpu-arch.png"></img>
-
-        <p>
-            Memory bandwidth computation.
-            PCIe bandwidth 
-
-            1024 threads/block since CUDA 3.0.
-
-            Inter-SM communication not a 
-        </p>
-
+        <img src="./resources/gpu-arch.png" width="1000" height="700"></img><br><br>
 
         <sup>
             1. Single instruction multiple data (SIMD) parallel processing differs 
@@ -315,9 +304,41 @@
             about later. The most common example of SPMD is MPI.
         </sup>
 
+        <h2>Memory Bandwidth and Latency</h2>
+        <p>
+            Data copy between global memory and system main memory goes 
+            through the PCIe bus. You can find one-way transfer rates per lane
+            by PCIe generation <a ref="https://en.wikipedia.org/wiki/PCI_Express#Comparison_table">
+            here</a>. For example, PCIe 6.0 has a two-way throughput of 64 GT/s 
+            per lane, with 2 bits/transfer due to PAM4, and a 242/256 encoding 
+            efficiency due to encoding overhead. This gives a one-way throughput 
+            of 121 GB/s for 16 lanes.
+        </p>
+        <br>
+        <img src="./resources/pcie-bandwidth.png" width="700"></img><br><BR>
+
+        <p>
+            You can see that the bandwidth of data transfer from GPU global memory 
+            to the GPU's level caches, Shared Memory and registers is more than an 
+            order of magnitude larger than that of the PCIe bus. For example, the 
+            <a href="https://www.techpowerup.com/gpu-specs/a100-pcie-80-gb.c3821">A100 80GB</a> 
+            uses HBM2e double data rate memory clocking in at 1512 MHz, with a 
+            peek bandwidth of 1.94 TB/s. 
+        </p>
+
+        <img src="./resources/global-memory-bandwidth.png" width="500"></img><br>
+
+
+        <p>
+            Why are these numbers relevant to performance? 
+        </p>
+
 
         
     </section>
+    <section>
+        <h2>Cache Transparency</h2>
+    <section>
     <hr>
     <section>
         <h2>Resources and References</h2>
