@@ -305,6 +305,8 @@
         </sup>
 
         <h2>Memory Bandwidth and Latency</h2>
+
+        <h3>PCIe Bandwidth</h3>
         <p>
             Data copy between global memory and system main memory goes 
             through the PCIe bus. You can find one-way transfer rates per lane
@@ -316,11 +318,41 @@
         </p>
         <br>
         <img src="./resources/pcie-bandwidth.png" width="700"></img><br><BR>
-
         <p>
-            You can see that the bandwidth of data transfer from GPU global memory 
+            Why are these numbers relevant to performance? The 
+            simplest model of host-device interaction involves something like:
+            <li>Allocating array(s) in host memory, initializing the array values 
+                with data loaded from disk or as a result of previous host-side 
+                computation.</li>
+            <li>cudaMemcpy() the data from host memory to arrays allocated on 
+                device global memory.</li>
+            <li>Launching a CUDA kernel to perform floating-point operations on 
+                these device arrays, and store results in a results device array.
+            </li>
+            <li>cudaMemcpy() the device-side results array back to a results array 
+                allocated in host memory.
+            </li>
+            <li>Save the host-side results array to disk or continue on with additional 
+                host-side computation.
+            </li><br>
+
+            The user experiences a latency due to PCIe memory bandwidth every time 
+            data is copied between host and device memory. I profiled a simple 
+            vector-add kernel on an A100 40GB, adding two 1-billion 
+            element vectors. One billion addition ops took only 9ms while the  
+            3 cudaMemcpy() calls (one for A_host to A_device, one for B_host to 
+            B_device, and one for C_device to C_host) across PCIe took more than 
+            1.3s.
+        </p>
+
+        <img src="./resources/vectoradd-perf.png" width="1200"></img><br>
+
+
+        <h3>HBM Bandwidth</h3>
+        <p>
+            The bandwidth of data transfer from GPU global memory 
             to the GPU's level caches, Shared Memory and registers is more than an 
-            order of magnitude larger than that of the PCIe bus. For example, the 
+            order of magnitude faster than that of the PCIe bus. For example, the 
             <a href="https://www.techpowerup.com/gpu-specs/a100-pcie-80-gb.c3821">A100 80GB</a> 
             uses HBM2e double data rate memory clocking in at 1512 MHz, with a 
             peek bandwidth of 1.94 TB/s. 
@@ -328,17 +360,30 @@
 
         <img src="./resources/global-memory-bandwidth.png" width="500"></img><br>
 
-
         <p>
-            Why are these numbers relevant to performance? 
+            Even though HBM bandwidth is high, naive kernel implementations can 
+            easily become bottle-necked by memory bandwidth, achieving throughput 
+            far below the theoretical peak FLOPS. One of the characteristic 
+            numbers of a CUDA kernel implementation is it's bytes/FLOP ratio. 
+            In the case of the vector-add kernel, every kernel invocation loads 
+            up two float32 array elements from global memory and adds them 
+            together. Assuming no cache hits, this kernel performs 1 addition 
+            FLOP for every 8 bytes loaded from global memory, giving a 
+            bytes/FLOP ratio of 8. This number determines whether your kernel 
+            is compute bound or bound by the global memory's max bandwidth, 
+            kind of like how the Reynolds number determines whether fluid flow 
+            is in the laminar or turbulent regime.
         </p>
+
+        <!-- <h3>Memory Latency</h3> -->
 
 
         
     </section>
+    <!-- <hr>
     <section>
         <h2>Cache Transparency</h2>
-    <section>
+    <section> -->
     <hr>
     <section>
         <h2>Resources and References</h2>
