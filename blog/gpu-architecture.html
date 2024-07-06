@@ -345,14 +345,14 @@
             1.3s.
         </p>
 
-        <img src="./resources/vectoradd-perf.png" width="1200"></img><br>
+        <img src="./resources/vectoradd-perf.png" width="1200"></img><br><br>
 
 
         <h3>HBM Bandwidth</h3>
         <p>
-            The bandwidth of data transfer from GPU global memory 
-            to the GPU's level caches, Shared Memory and registers is more than an 
-            order of magnitude faster than that of the PCIe bus. For example, the 
+            Data transfer from GPU global memory to the GPU's level caches, 
+            Shared Memory and registers is more than an order of magnitude 
+            faster than across the PCIe bus. For example, the 
             <a href="https://www.techpowerup.com/gpu-specs/a100-pcie-80-gb.c3821">A100 80GB</a> 
             uses HBM2e double data rate memory clocking in at 1512 MHz, with a 
             peek bandwidth of 1.94 TB/s. 
@@ -362,8 +362,8 @@
 
         <p>
             Even though HBM bandwidth is high, naive kernel implementations can 
-            easily become bottle-necked by memory bandwidth, achieving throughput 
-            far below the theoretical peak FLOPS. One of the characteristic 
+            easily become bottle-necked by memory bandwidth, with throughput 
+            far below theoretical peak FLOPS. One of the characteristic 
             numbers of a CUDA kernel implementation is it's bytes/FLOP ratio. 
             In the case of the vector-add kernel, every kernel invocation loads 
             up two float32 array elements from global memory and adds them 
@@ -372,10 +372,24 @@
             bytes/FLOP ratio of 8. This number determines whether your kernel 
             is compute bound or bound by the global memory's max bandwidth, 
             kind of like how the Reynolds number determines whether fluid flow 
-            is in the laminar or turbulent regime.
+            is in the laminar or turbulent regimes.
         </p>
 
-        <!-- <h3>Memory Latency</h3> -->
+        <h3>Memory Latency</h3>
+        <p>Rough read latencies for across memory hierarchy. Recall registers 
+            and level caches are SRAM, while global memory is DRAM. Units are 
+            in CUDA core clock cycles (latency experienced by a thread running 
+            on a CUDA core).
+            <li>Register: 1-2 </li>
+            <li>L1 cache/Shared Memory: 20-30</li>
+            <li>L2 cache: 100-300 </li>
+            <li>Global Memory (HBM): 500-800 </li>
+        </p>
+        <p>
+            So reads from register are basically instantaneous. L1 cache 
+            hits and reads from Shared Memory are 20-40x faster than from 
+            global HBM.
+        </p>
 
 
         
