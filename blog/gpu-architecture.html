@@ -418,12 +418,12 @@
             working together. 
         </p>
         <p>
-            Like CPUS, GPUs have transparent caching. This means that the 
-            programmer is not responsible for explicitly defining what values get cached, 
-            when they are cached, when they are evicted, temporal locality, 
-            nor the cache eviction policy. All of these things, including handling 
-            cache misses and ensuring cache coherence, are handled automatically 
-            by the cache controllers in addition to coordinating with memory 
+            Like CPUs, GPUs have transparent caching. What this means is that 
+            the programmer is not responsible for explicitly defining what 
+            values get cached, when they are cached, when they are evicted, 
+            exploiting temporal locality, nor the cache eviction policy. All of 
+            these things are handled automatically by the cache controllers in 
+            addition to coordinating with memory 
             controllers to send and receive data from global memory. Even the 
             OS kernel doesn't get involved. Transparent caching reduces complexity 
             for the programmer and allows hardware designers to abstract away 
