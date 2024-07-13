@@ -64,15 +64,25 @@
             the CUDA runtime API. I'll also touch upon GPU profiling using
             NVIDIA's Nsight Systems, and show a few basic kernels.
         </p>
-        
-
     </section>
-
     <hr>
-
+        <nav id="toc">
+            <h2>Contents</h2>
+            <ul>
+                <li><a href="#cpu-history">CPU History</a></li>
+                <li><a href="#heterogeneity">Heterogenous Processors and GPU History</a></li>
+                <li><a href="#memory-hardware">Memory Hardware</a></li>
+                <li><a href="#gpu-architecture">GPU Architecture</a></li>
+                <li><a href="#memory-perf">Memory Bandwidth and Latency</a></li>
+                <li><a href="#cache-transparency">Cache Transparency</a></li>
+                <!-- <li><a href="#PTX">Parallel Thread Execution (PTX), nvcc Compiler</a></li> -->
+                <li><a href="#resources">Resources and References</a></li>
+            </ul>
+        </nav>
+    <hr>
     <section>
         
-        <h2>CPU History</h2>
+        <h2 id="cpu-history">CPU History</h2>
         <p>
             It's useful to get a sense of the history of computing to understand
             where GPUs fit in the landscape. Probably most of this is 
@@ -80,9 +90,7 @@
             a graph showing progress along Moore's law, pulled from Wikipedia's page on 
             transistor count. 
         </p> <br>
-
         <img src="./resources/moores-law.png">
-
         <p>
             Although single-core clock rates have improved from MHz to 5 Ghz 
             from the 1980s to the 2020s, clock rates are upper-bounded by
@@ -103,7 +111,7 @@
     </section>
     <hr>
     <section>
-        <h2>Heterogenous Processors and GPU History</h2>
+        <h2 id="heterogeneity">Heterogenous Processors and GPU History</h2>
         <p>
             Modern computer architectures have a variety of processors, organized
             into a variety of hardware units:
@@ -178,7 +186,7 @@
     </section>
     <hr>
     <section>
-        <h2>Memory Hardware</h2>
+        <h2 id="memory-hardware">Memory Hardware</h2>
         <p>
             Physical memory is arranged as an array of memory cells, which is 
             why almost all data structures are fundamentally arrays plus 
@@ -235,7 +243,7 @@
     </section>
     <hr>
     <section>
-        <h2>GPU Architecture</h2>
+        <h2 id="gpu-architecture">GPU Architecture</h2>
         <p>
             Outside of quantum computing, modern computer architectures 
             fundamentally have not changed since the von Neumann model 
@@ -304,7 +312,7 @@
             about later. The most common example of SPMD is MPI.
         </sup>
 
-        <h2>Memory Bandwidth and Latency</h2>
+        <h2 id="memory-perf">Memory Bandwidth and Latency</h2>
 
         <h3>PCIe Bandwidth</h3>
         <p>
@@ -364,7 +372,7 @@
             Even though HBM bandwidth is high, naive kernel implementations can 
             easily become bottle-necked by memory bandwidth, with throughput 
             far below theoretical peak FLOPS. One of the characteristic 
-            numbers of a CUDA kernel implementation is it's bytes/FLOP ratio. 
+            numbers of a CUDA kernel implementation is its bytes/FLOP ratio. 
             In the case of the vector-add kernel, every kernel invocation loads 
             up two float32 array elements from global memory and adds them 
             together. Assuming no cache hits, this kernel performs 1 addition 
@@ -388,19 +396,53 @@
         <p>
             So reads from register are basically instantaneous. L1 cache 
             hits and reads from Shared Memory are 20-40x faster than from 
-            global HBM.
+            global HBM. Of course these numbers are ballpark figures and 
+            varies by GPU generation, the point is to illustrate order of 
+            magnitude differences.
         </p>
 
 
         
     </section>
-    <!-- <hr>
-    <section>
-        <h2>Cache Transparency</h2>
-    <section> -->
     <hr>
     <section>
-        <h2>Resources and References</h2>
+        <h2 id="cache-transparency">Cache Transparency</h2>
+        <p>
+            In operating systems, transparency refers to a piece of software or 
+            hardware doing something in the background as if it were transparent 
+            or invisible to the user. In terms of building layers of 
+            abstraction, this term naturally finds it place. 
+            You have a collection of hardware and device drivers implementing 
+            hardware-specific logic, exposing APIs at some appropriate level of 
+            detail to the kernel that allows the OS to coordinate hardware 
+            working together. 
+        </p>
+        <p>
+            Like CPUS, GPUs have transparent caching. This means that the 
+            programmer is not responsible for explicitly defining what values get cached, 
+            when they are cached, when they are evicted, temporal locality, 
+            nor the cache eviction policy. All of these things, including handling 
+            cache misses and ensuring cache coherence, are handled automatically 
+            by the cache controllers in addition to coordinating with memory 
+            controllers to send and receive data from global memory. Even the 
+            OS kernel doesn't get involved. Transparent caching reduces complexity 
+            for the programmer and allows hardware designers to abstract away 
+            caching implementation and performance details.
+        </p>
+        </p>
+            Contrast this with the shared memory portion of the L1 SRAM and 
+            global memory. The programmer explicitly declares and 
+            initializes arrays on those memory locations and is responsible 
+            for freeing allocated memory at the end of their lifetimes. 
+        </p>
+    <section>
+    <hr>
+    <!-- <section>
+        <h2 id="PTX">Parallel Thread Execution (PTX), nvcc Compiler</h2>
+    <section>
+    <hr> -->
+    <section>
+        <h2 id="resources">Resources and References</h2>
         <p>
             <li>
                 Most of this stuff came from 
