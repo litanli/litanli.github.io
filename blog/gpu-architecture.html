@@ -55,12 +55,12 @@
     <section id="intro">
         <p>
             In this post I'll talk about some computing history and 
-            introduce the basic GPU architecture concepts needed for 
+            introduce basic GPU architecture concepts needed for 
             writing CUDA kernels, such as physical hardware organization, logical 
-            organization/compute model, and memory hierarchy. CUDA kernels are 
-            functions that run directly on NVIDIA GPUs. Most of the syntax is 
-            the same as C/C++, along with key utilities
-            like GPU memory management and thread synchronization provided by 
+            organization/the CUDA compute model, and memory hierarchy. CUDA 
+            kernels are functions that run directly on NVIDIA GPUs. Most of the 
+            syntax is the same as C/C++, along with key utilities like GPU 
+            memory management and thread synchronization provided by 
             the CUDA runtime API. I'll also touch upon GPU profiling using
             NVIDIA's Nsight Systems, and show a few basic kernels.
         </p>
@@ -85,10 +85,9 @@
         <h2 id="cpu-history">CPU History</h2>
         <p>
             It's useful to get a sense of the history of computing to understand
-            where GPUs fit in the landscape. Probably most of this is 
-            not new to you. Here's 
-            a graph showing progress along Moore's law, pulled from Wikipedia's page on 
-            transistor count. 
+            where GPUs fit in the landscape. Probably most of this is not new 
+            to you. Here's a graph showing progress along Moore's law, pulled 
+            from Wikipedia's page on transistor count. 
         </p> <br>
         <img src="./resources/moores-law.png">
         <p>
@@ -100,11 +99,10 @@
             2 to 3). Instead of increasing single-core clock rates to the moon, 
             it's more power-efficient to design chips with multiple "medium" 
             frequency cores. This is the driving principle behind 
-            multi-core processor designs and the philosophy is to allow 
-            increased overall throughput via parallelism while maintaining 
-            single-core performance for non-parallel programs. IBM developed
-            the first dual-core processor in 2001, and Intel shipped the
-            Pentium D in 2004.
+            multi-core processor designs - allow increased throughput via 
+            parallelism while maintaining single-core performance for 
+            non-parallel programs. IBM developed the first dual-core processor 
+            in 2001, and Intel shipped the Pentium D in 2004.
         </p>
        
 
@@ -116,7 +114,7 @@
             Modern computer architectures have a variety of processors, organized
             into a variety of hardware units:
             <li>
-                A typical server has a multi-core CPU plus one or more GPUs 
+                A server with a multi-core CPU plus one or more GPUs 
                 connected via PCIe.
             </li> 
             <li>
@@ -133,9 +131,9 @@
             There's lots of heterogeneity because processors are designed to be
             efficient on specific workloads and cores have become increasingly  
             workload-dependent. In fact, the term "dark processors" refers to 
-            heterogenous processors where only a subset of cores draw 
-            electricity at a time. Within this context, GPUs 
-            have obviously become an important player: 
+            accelerators where only a subset of cores draw electricity at a 
+            time. Within this context, GPUs have obviously become an important 
+            player: 
         </p>
         <p>
             <li>1999: NVIDIA releases world's first commercial GPU.</li>
@@ -154,13 +152,13 @@
             </li>
         </p>
         <p>
-            Like all modern architectures outside of quantum computing, 
-            GPUs follow the classical von Neumann model proposed in "First Draft 
-            of a Report on the EDVAC" (von Neumann, 1945) where instructions and 
+            Like all modern architectures outside of quantum computing, GPUs 
+            follow the classical von Neumann model proposed in "First Draft of 
+            a Report on the EDVAC" (von Neumann, 1945) where instructions and 
             data are stored in a memory system and fetched by one or multiple  
-            control units. However, GPUs have much higher theoretical 
-            throughput<sup>2</sup> due to <i>much</i> higher core count, even 
-            though each core runs slower than a CPU core.
+            control units. GPUs have much higher theoretical throughput<sup>2</sup> 
+            due to <i>much</i> higher core count, even though each core runs 
+            slower than a CPU core.
 
             <li>CPU: 12-96 cores, 5GHz each</li>
             <li>A100: 6912 CUDA cores, 432 Tensor cores, 1065 MHz each</li>
@@ -179,9 +177,9 @@
         </sup>
         <br>
         <sup>
-            2. Whereas throughput (measured in floating point 
-            operations per second, or FLOPS) in practice is often bottle-necked by 
-            memory bandwidth.
+            2. Whereas throughput (measured in floating point operations per 
+            second, or FLOPS) in practice is often bottle-necked by memory 
+            bandwidth.
         </sup>
     </section>
     <hr>
@@ -217,7 +215,7 @@
             cards such at the GeForce RTX series use GDDR6, which uses a traditional 
             2D arrangement of cells. Server grade devices like the A100 and 
             H100 use HBM (high-bandwidth memory), stacking DRAM cells in a 3D 
-            arrangement. This reduce its form factor, travel distance between 
+            arrangement. This reduces its form factor, travel distance between 
             cells and bus pins, and latency (at the cost of a more expensive 
             and complex and manufacturing process).
         </p>
@@ -372,20 +370,20 @@
             Even though HBM bandwidth is high, naive kernel implementations can 
             easily become bottle-necked by memory bandwidth, with throughput 
             far below theoretical peak FLOPS. One of the characteristic 
-            numbers of a CUDA kernel implementation is its bytes/FLOP ratio. 
+            numbers of a CUDA kernel implementation is its FLOPs/bytes ratio. 
             In the case of the vector-add kernel, every kernel invocation loads 
             up two float32 array elements from global memory and adds them 
             together. Assuming no cache hits, this kernel performs 1 addition 
-            FLOP for every 8 bytes loaded from global memory, giving a 
-            bytes/FLOP ratio of 8. This number determines whether your kernel 
+            FLOP for every 8 bytes loaded from global memory, giving it a ratio 
+            of 1/8. This number determines whether your kernel 
             is compute bound or bound by the global memory's max bandwidth, 
             kind of like how the Reynolds number determines whether fluid flow 
             is in the laminar or turbulent regimes.
         </p>
 
         <h3>Memory Latency</h3>
-        <p>Rough read latencies for across memory hierarchy. Recall registers 
-            and level caches are SRAM, while global memory is DRAM. Units are 
+        <p>Rough read latencies across memory hierarchy. Recall registers 
+            and caches are SRAM, while global memory is DRAM. Units are 
             in CUDA core clock cycles (latency experienced by a thread running 
             on a CUDA core).
             <li>Register: 1-2 </li>
@@ -394,10 +392,10 @@
             <li>Global Memory (HBM): 500-800 </li>
         </p>
         <p>
-            So reads from register are basically instantaneous. L1 cache 
+            So reads from registers are basically instantaneous. L1 cache 
             hits and reads from Shared Memory are 20-40x faster than from 
             global HBM. Of course these numbers are ballpark figures and 
-            varies by GPU generation, the point is to illustrate order of 
+            varies by GPU generation. The point is to illustrate order of 
             magnitude differences.
         </p>
 
