@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="../style.css" />
+
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+        integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"
+        integrity="sha384-cpW21h6RZv/phavutF+AuVYrr+dA8xD9zs6FwLpaCct6O9ctzYFfFr4dgmgccOTx"
+        crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+        integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05"
+        crossorigin="anonymous"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            renderMathInElement(document.body, {
+                // auto-render specific keys
+                delimiters: [
+                    { left: '$$', right: '$$', display: true },
+                    { left: '$', right: '$', display: false },
+                    { left: '\\(', right: '\\)', display: false },
+                    { left: '\\[', right: '\\]', display: true },
+                    { left: "\\begin{equation}", right: "\\end{equation}", display: true },
+                    { left: "\\begin{equation*}", right: "\\end{equation*}", display: true },
+                    { left: "\\begin{align}", right: "\\end{align}", display: true },
+                    { left: "\\begin{align*}", right: "\\end{align*}", display: true },
+                    { left: "\\begin{gather}", right: "\\end{gather}", display: true },
+                    { left: "\\begin{CD}", right: "\\end{CD}", display: true },
+                ],
+                // rendering keys
+                throwOnError: false,
+                fleqn: true // display math renders flush left with a 2em left margin   
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <a class="button" href="../index.html">
+        <button>Home</button>
+    </a>
+
+    <section id="title">
+        <h1>Basic GPU Architecture and CUDA Kernels (WIP)</h1>
+        <i>6/2024</i><br><br>
+    </section>
+
+    <hr>
+
+    <section id="intro">
+        <p>
+            In this post I'll talk about some computing history and 
+            introduce basic GPU architecture concepts needed for 
+            writing CUDA kernels, such as physical hardware organization, logical 
+            organization/the CUDA compute model, and memory hierarchy. CUDA 
+            kernels are functions that run directly on NVIDIA GPUs. Most of the 
+            syntax is the same as C/C++, along with key utilities like GPU 
+            memory management and thread synchronization provided by 
+            the CUDA runtime API. I'll also touch upon GPU profiling using
+            NVIDIA's Nsight Systems, and show a few basic kernels.
+        </p>
+    </section>
+    <hr>
+        <nav id="toc">
+            <h2>Contents</h2>
+            <ul>
+                <li><a href="#cpu-history">CPU History</a></li>
+                <li><a href="#heterogeneity">Heterogenous Processors and GPU History</a></li>
+                <li><a href="#memory-hardware">Memory Hardware</a></li>
+                <li><a href="#gpu-architecture">GPU Architecture</a></li>
+                <li><a href="#memory-perf">Memory Bandwidth and Latency</a></li>
+                <li><a href="#cache-transparency">Cache Transparency</a></li>
+                <!-- <li><a href="#PTX">Parallel Thread Execution (PTX), nvcc Compiler</a></li> -->
+                <li><a href="#resources">Resources and References</a></li>
+            </ul>
+        </nav>
+    <hr>
+    <section>
+        
+        <h2 id="cpu-history">CPU History</h2>
+        <p>
+            It's useful to get a sense of the history of computing to understand
+            where GPUs fit in the landscape. Probably most of this is not new 
+            to you. Here's a graph showing progress along Moore's law, pulled 
+            from Wikipedia's page on transistor count. 
+        </p> <br>
+        <img src="./resources/moores-law.png">
+        <p>
+            Although single-core clock rates have improved from MHz to 5 Ghz 
+            from the 1980s to the 2020s, clock rates are upper-bounded by
+            thermal dissipation as transistor density increases (chips will
+            burn if you run them too hot!), and by the fact that transistor power 
+            draw follows a power law ($P\varpropto f^{k}$ where $k$ is typically 
+            2 to 3). Instead of increasing single-core clock rates to the moon, 
+            it's more power-efficient to design chips with multiple "medium" 
+            frequency cores. This is the driving principle behind 
+            multi-core processor designs - allow increased throughput via 
+            parallelism while maintaining single-core performance for 
+            non-parallel programs. IBM developed the first dual-core processor 
+            in 2001, and Intel shipped the Pentium D in 2004.
+        </p>
+       
+
+    </section>
+    <hr>
+    <section>
+        <h2 id="heterogeneity">Heterogenous Processors and GPU History</h2>
+        <p>
+            Modern computer architectures have a variety of processors, organized
+            into a variety of hardware units:
+            <li>
+                A server with a multi-core CPU plus one or more GPUs 
+                connected via PCIe.
+            </li> 
+            <li>
+                Intel CPUs have Performance Cores and Efficiency Cores.
+            </li>
+            <li>NVIDIA GPUs have CUDA cores (graphics, general purpose) and 
+                Tensor cores (matrix ops).</li>
+            <li>Google TPUs optimize for matrix operations</li>
+            <li>FPGAs are reconfigurable, semi-general purpose chips.</li>
+        </p>
+        <p>
+            
+            We even have chips that support multiple ISAs<sup>1</sup>.
+            There's lots of heterogeneity because processors are designed to be
+            efficient on specific workloads and cores have become increasingly  
+            workload-dependent. In fact, the term "dark processors" refers to 
+            accelerators where only a subset of cores draw electricity at a 
+            time. Within this context, GPUs have obviously become an important 
+            player: 
+        </p>
+        <p>
+            <li>1999: NVIDIA releases world's first commercial GPU.</li>
+            <li>2001: beginning of general purpose programming on GPUs (GPGPU), 
+                "more than just graphics and video games", dark times where
+                only rudimentary GPU programming support existed for developers.
+            </li>
+            <li>
+                2003: two independent research groups report matrix operations 
+                running faster on GPU than CPU.
+            </li>
+            <li>
+                2006: NVIDIA releases the CUDA API and runtime v1.0, an 
+                extension of C syntax for writing functions that run 
+                on GPU threads.
+            </li>
+        </p>
+        <p>
+            Like all modern architectures outside of quantum computing, GPUs 
+            follow the classical von Neumann model proposed in "First Draft of 
+            a Report on the EDVAC" (von Neumann, 1945) where instructions and 
+            data are stored in a memory system and fetched by one or multiple  
+            control units. GPUs have much higher theoretical throughput<sup>2</sup> 
+            due to <i>much</i> higher core count, even though each core runs 
+            slower than a CPU core.
+
+            <li>CPU: 12-96 cores, 5GHz each</li>
+            <li>A100: 6912 CUDA cores, 432 Tensor cores, 1065 MHz each</li>
+            <li>H100: 14592 CUDA cores, 456 Tensor cores, 1095 MHz each</li>
+
+        </p>
+
+        <sup>
+            1. Instruction set architectures (ISAs) are neither hardware
+            nor software, but a <i>specification</i> of what low level instructions
+            a CPU should support. Amongst the key players x86, ARM and RISC-V 
+            (UC Berkeley, 2010), RISC-V is open-sourced and many find its 
+            non-bloatedness appealing. For example, 
+            <a href="https://tenstorrent.com/">Tenstorrent</a> makes GPUs 
+            following RISC-V.
+        </sup>
+        <br>
+        <sup>
+            2. Whereas throughput (measured in floating point operations per 
+            second, or FLOPS) in practice is often bottle-necked by memory 
+            bandwidth.
+        </sup>
+    </section>
+    <hr>
+    <section>
+        <h2 id="memory-hardware">Memory Hardware</h2>
+        <p>
+            Physical memory is arranged as an array of memory cells, which is 
+            why almost all data structures are fundamentally arrays plus 
+            specific algorithms implementing the data structure's 
+            interface. GPUs use dynamic random access memory (DRAM) for its 
+            global memory and static random access memory (SRAM) for caches.
+            In both cases, single bits are stored in memory cells, but the 
+            physical implementation of memory cells differ and lead to 
+            differences in performance. 
+        </p>
+
+        <h3>DRAM</h3>
+        <p>
+            When people say "this GPU has 80GB of memory", they're 
+            referring to the size of the GPU's global memory, which uses 2D or 
+            3D arrays of DRAM memory cells. These cells are small, consisting of 
+            1 capacitor and 1 transistor, making them cheaper to manufacture and 
+            have higher capacity. The mechanism for storing a bit relies on 
+            charging and discharging the memory cell's capacitor. One reason 
+            that DRAM cells have higher latency compared to SRAM cells is 
+            because they lose charge and require a recharge after every read.
+            The entire array also loses partial charge over time and require 
+            periodic refreshes to maintain data integrity (on-the-fly, hence 
+            the "dynamic" in DRAM). 
+        </p>
+        <p>
+            How DRAM cells are stacked together also differs. Most consumer 
+            cards such at the GeForce RTX series use GDDR6, which uses a traditional 
+            2D arrangement of cells. Server grade devices like the A100 and 
+            H100 use HBM (high-bandwidth memory), stacking DRAM cells in a 3D 
+            arrangement. This reduces its form factor, travel distance between 
+            cells and bus pins, and latency (at the cost of a more expensive 
+            and complex and manufacturing process).
+        </p>
+
+        <h3>SRAM</h3>
+        <p>
+            SRAM cells are big. Each cell consists of 6 transistors (hence the 
+            name 6T SRAM cells) making them lower capacity for the same die 
+            size, and more costly to 
+            manufacture. They also draw more power than DRAM cells. The upside 
+            is that the 6 transistors are arranged as a flip-flop circuit that 
+            can represent binary states and be very quickly read, making SRAM 
+            cells have much lower latency. On GPUs, SRAM is used for register
+            memory and the level caches.
+        </p>
+        <p>
+            So DRAM is big but slow while SRAM is small but fast. In general 
+            there's a trade-off between latency and capacity, and designers take 
+            into account manufacturing cost, thermal dissipation, total power 
+            draw, and how much die size the memory chip needs, which is a 
+            precious commodity in chip design. 
+        </p>
+    </section>
+    <hr>
+    <section>
+        <h2 id="gpu-architecture">GPU Architecture</h2>
+        <p>
+            Outside of quantum computing, modern computer architectures 
+            fundamentally have not changed since the von Neumann model 
+            ("First Draft of a Report on the EDVAC", von Neumann, 1945). 
+            In said model, instructions and data stored in contiguous arrays are 
+            fetched and executed by one or multiple processing units. If you're 
+            interested in a bit of computer architecture history, you can read 
+            a revised version of the report
+            <a href="https://web.mit.edu/STS.035/www/PDFs/edvac.pdf">here</a>.
+        </p>
+
+        <p>
+            CPU and GPU chips contain several levels of memory, exhibiting the familiar 
+            characteristics of "small and fast" to "big and slow". Here we 
+            show a 24-core CPU with 3 levels of caching, including a massive 
+            L3 cache shared between all the physical cores. Remember that the 
+            design philosophy of multi-core CPUs is to increase overall throughput
+            by giving programmers the option to write and run parallel code, 
+            while maintaining low latency and high single-core throughput for non-parallel 
+            programs. Part of this low latency is achieved by massive (MB range) 
+            caches enabling as many cache hits as possible during program execution. 
+            The biggest and slowest memory is your laptop/server's main memory, 
+            which is connected 
+            to your CPU via a memory bus soldered onto the motherboard. At a high
+            level, three things contribute to low latency: 1) physical proximity 
+            to the ALUs and FPUs incur less travel time, 2) smaller caches 
+            incur less overhead for cache line lookups and for ensuring cache 
+            consistency, and 3) using SRAM cells over DRAM.            
+        </p>
+
+        <img src="./resources/cpu-arch.png"></img>
+
+        <p>
+            GPUs have a similar architecture with a few key differences - 
+            the obvious being several orders of magnitude more cores. 
+            These CUDA cores are bundled into physical units called streaming 
+            multiprocessors (SMs), each of which has its own control unit and 
+            and a small piece of SRAM split between the L1 cache and 
+            Shared Memory. Logically, threads are organized into warps of 32 
+            threads, warps into blocks, and blocks into a single grid. Each block 
+            can have a maximum of 1024 threads and are assigned 
+            wholesale to SMs, i.e. all warps within a block are guaranteed to 
+            be assigned to the same SM. Thus a common kernel pattern involves 
+            multiple threads cooperatively loading data into 
+            Shared Memory, a thread synchronization call to block each thread until 
+            all threads have finished loading their shards, followed by 
+            SIMD<sup>1</sup> parallel execution. This makes inter-SM communication 
+            not supported as a first-class citizen, and is meant to simplify 
+            the compute model (since communication between threads scheduled 
+            on different SMs would require additional hardware support on the 
+            die). One somewhat hacky way to get around this is to use atomic
+            operations on a variable in global memory, in which case one thread 
+            can write a message at the variable's memory offset and any another 
+            thread can read it.
+        </p>
+
+        <img src="./resources/gpu-arch.png" width="1000" height="700"></img><br><br>
+
+        <sup>
+            1. Single instruction multiple data (SIMD) parallel processing differs 
+            from single program multiple data (SPMD) in that not only is the 
+            same program being run on multiple shards of data simultaneously, 
+            the same sequence of instructions are being issued and followed by 
+            all threads in lockstep. This makes limiting control divergence 
+            within single warps a performance consideration, which we'll talk 
+            about later. The most common example of SPMD is MPI.
+        </sup>
+
+        <h2 id="memory-perf">Memory Bandwidth and Latency</h2>
+
+        <h3>PCIe Bandwidth</h3>
+        <p>
+            Data copy between global memory and system main memory goes 
+            through the PCIe bus. You can find one-way transfer rates per lane
+            by PCIe generation <a ref="https://en.wikipedia.org/wiki/PCI_Express#Comparison_table">
+            here</a>. For example, PCIe 6.0 has a two-way throughput of 64 GT/s 
+            per lane, with 2 bits/transfer due to PAM4, and a 242/256 encoding 
+            efficiency due to encoding overhead. This gives a one-way throughput 
+            of 121 GB/s for 16 lanes.
+        </p>
+        <br>
+        <img src="./resources/pcie-bandwidth.png" width="700"></img><br><BR>
+        <p>
+            Why are these numbers relevant to performance? The 
+            simplest model of host-device interaction involves something like:
+            <li>Allocating array(s) in host memory, initializing the array values 
+                with data loaded from disk or as a result of previous host-side 
+                computation.</li>
+            <li>cudaMemcpy() the data from host memory to arrays allocated on 
+                device global memory.</li>
+            <li>Launching a CUDA kernel to perform floating-point operations on 
+                these device arrays, and store results in a results device array.
+            </li>
+            <li>cudaMemcpy() the device-side results array back to a results array 
+                allocated in host memory.
+            </li>
+            <li>Save the host-side results array to disk or continue on with additional 
+                host-side computation.
+            </li><br>
+
+            The user experiences a latency due to PCIe memory bandwidth every time 
+            data is copied between host and device memory. I profiled a simple 
+            vector-add kernel on an A100 40GB, adding two 1-billion 
+            element vectors. One billion addition ops took only 9ms while the  
+            3 cudaMemcpy() calls (one for A_host to A_device, one for B_host to 
+            B_device, and one for C_device to C_host) across PCIe took more than 
+            1.3s.
+        </p>
+
+        <img src="./resources/vectoradd-perf.png" width="1200"></img><br><br>
+
+
+        <h3>HBM Bandwidth</h3>
+        <p>
+            Data transfer from GPU global memory to the GPU's level caches, 
+            Shared Memory and registers is more than an order of magnitude 
+            faster than across the PCIe bus. For example, the 
+            <a href="https://www.techpowerup.com/gpu-specs/a100-pcie-80-gb.c3821">A100 80GB</a> 
+            uses HBM2e double data rate memory clocking in at 1512 MHz, with a 
+            peek bandwidth of 1.94 TB/s. 
+        </p>
+
+        <img src="./resources/global-memory-bandwidth.png" width="500"></img><br>
+
+        <p>
+            Even though HBM bandwidth is high, naive kernel implementations can 
+            easily become bottle-necked by memory bandwidth, with throughput 
+            far below theoretical peak FLOPS. One of the characteristic 
+            numbers of a CUDA kernel implementation is its FLOPs/bytes ratio. 
+            In the case of the vector-add kernel, every kernel invocation loads 
+            up two float32 array elements from global memory and adds them 
+            together. Assuming no cache hits, this kernel performs 1 addition 
+            FLOP for every 8 bytes loaded from global memory, giving it a ratio 
+            of 1/8. This number determines whether your kernel 
+            is compute bound or bound by the global memory's max bandwidth, 
+            kind of like how the Reynolds number determines whether fluid flow 
+            is in the laminar or turbulent regimes.
+        </p>
+
+        <h3>Memory Latency</h3>
+        <p>Rough read latencies across memory hierarchy. Recall registers 
+            and caches are SRAM, while global memory is DRAM. Units are 
+            in CUDA core clock cycles (latency experienced by a thread running 
+            on a CUDA core).
+            <li>Register: 1-2 </li>
+            <li>L1 cache/Shared Memory: 20-30</li>
+            <li>L2 cache: 100-300 </li>
+            <li>Global Memory (HBM): 500-800 </li>
+        </p>
+        <p>
+            So reads from registers are basically instantaneous. L1 cache 
+            hits and reads from Shared Memory are 20-40x faster than from 
+            global HBM. Of course these numbers are ballpark figures and 
+            varies by GPU generation. The point is to illustrate order of 
+            magnitude differences.
+        </p>
+
+
+        
+    </section>
+    <hr>
+    <section>
+        <h2 id="cache-transparency">Cache Transparency</h2>
+        <p>
+            In operating systems, transparency refers to a piece of software or 
+            hardware doing something in the background as if it were transparent 
+            or invisible to the user. In terms of building layers of 
+            abstraction, this term naturally finds it place. 
+            You have a collection of hardware and device drivers implementing 
+            hardware-specific logic, exposing APIs at some appropriate level of 
+            detail to the kernel that allows the OS to coordinate hardware 
+            working together. 
+        </p>
+        <p>
+            Like CPUs, GPUs have transparent caching. What this means is that 
+            the programmer is not responsible for explicitly defining what 
+            values get cached, when they are cached, when they are evicted, 
+            exploiting temporal locality, nor the cache eviction policy. All of 
+            these things are handled automatically by the cache controllers in 
+            addition to coordinating with memory 
+            controllers to send and receive data from global memory. Even the 
+            OS kernel doesn't get involved. Transparent caching reduces complexity 
+            for the programmer and allows hardware designers to abstract away 
+            caching implementation and performance details.
+        </p>
+        </p>
+            Contrast this with the shared memory portion of the L1 SRAM and 
+            global memory. The programmer explicitly declares and 
+            initializes arrays on those memory locations and is responsible 
+            for freeing allocated memory at the end of their lifetimes. 
+        </p>
+    <section>
+    <hr>
+    <!-- <section>
+        <h2 id="PTX">Parallel Thread Execution (PTX), nvcc Compiler</h2>
+    <section>
+    <hr> -->
+    <section>
+        <h2 id="resources">Resources and References</h2>
+        <p>
+            <li>
+                Most of this stuff came from 
+                "Programming on Massively Parallel Processors: A Hands-On Approach" 
+                by Hwu, Kirk and Hajj, which is probably a well-known book 
+                amongst CUDA programmers. I first stumbled upon it through a 
+                post from Andrej Karpathy on X shortly after his release of llm.c.
+            </li>
+            <li>
+                The architecture diagrams were made with the excellent 
+                <a href="https://excalidraw.com/">Excalidraw</a>.
+            </li>
+            <li>
+                Simon Boehm's <a href="https://siboehm.com/articles/22/CUDA-MMM">CUDA Matmul</a> blog post goes through multiple iterations 
+                of a matrix multiply kernel that comes close to parity with 
+                cuBLAS. It's a great next step after reading Part I of the book.
+            </li>
+            <li>
+                NVIDIA's official <a href="https://docs.nvidia.com/cuda/cuda-c-programming-guide/">CUDA C++ Programming Guide</a>, 
+                <a href="https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html">CUDA C++ Best Practices Guide</a>,
+                and <a href="https://github.com/NVIDIA/cuda-samples">CUDA Samples Github Repo</a>
+                provide a wealth of examples and exposition of concepts.
+                
+            </li>
+            <li>
+                NVIDIA's <a href="https://docs.nvidia.com/nsight-compute/ProfilingGuide/index.html">Kernel Profiling Guide</a>
+                from its Nsight Compute kernel profiler documentation provides
+                even more low-level details.
+            </li>
+        </p>
+    </section>
+    <br>
+    <hr>
+</body>
+</html>

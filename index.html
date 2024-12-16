@@ -3,76 +3,144 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
         <link rel="stylesheet" type="text/css" href="style.css" />
+        <title>Litan Li's Website</title>
+
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+
+        <!-- KaTeX -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+            integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn" crossorigin="anonymous">
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"
+            integrity="sha384-cpW21h6RZv/phavutF+AuVYrr+dA8xD9zs6FwLpaCct6O9ctzYFfFr4dgmgccOTx"
+            crossorigin="anonymous"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+            integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05"
+            crossorigin="anonymous"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                renderMathInElement(document.body, {
+                    // auto-render specific keys
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false },
+                        { left: '\\(', right: '\\)', display: false },
+                        { left: '\\[', right: '\\]', display: true },
+                        { left: "\\begin{equation}", right: "\\end{equation}", display: true },
+                        { left: "\\begin{equation*}", right: "\\end{equation*}", display: true },
+                        { left: "\\begin{align}", right: "\\end{align}", display: true },
+                        { left: "\\begin{align*}", right: "\\end{align*}", display: true },
+                        { left: "\\begin{gather}", right: "\\end{gather}", display: true },
+                        { left: "\\begin{CD}", right: "\\end{CD}", display: true },
+                    ],
+                    // rendering keys
+                    throwOnError: false,
+                    fleqn: true // display math renders flush left with a 2em left margin   
+                });
+            });
+        </script>
     </head>
     <body>
+        <header>
+            <!-- <h1>Litan Li</h1> -->
+            <p>
+                Hi I'm <bold>Litan</bold>. I'm interested in probabilistic machine learning 
+                and ML infrastructure. <br>
+                Below you'll find posts related to things I'm currently 
+                learning.
+            </p>
+        </header>
 
-        <section id="name">
-            <h1>Litan Li</h1>
-            <p>Hi I'm Litan. I'm interested in probabilistic machine learning and ML infrastructure.</p>
-            <p>Below you'll find blog articles related to things I'm currently learning.</p>
+        <div class="container">
+
+        <section id="blog">
+            <h2>Blog</h2>
+            <article>
+                <h3><a href="blog/gpu-architecture.html">Basic GPU Architecture and CUDA Kernels (WIP)</a></h3>
+                This post introduces basic GPU architecture concepts needed for 
+                writing CUDA kernels, such as physical hardware organization, 
+                logical organization/the CUDA compute model, and GPU memory 
+                hierarchy. I'll also touch upon GPU profiling using NVIDIA's Nsight Systems, 
+                and show a few basic kernels.
+            </article> <br>
+            <article>
+                <h3><a href="blog/coherence.html">Structure Tensors and Coherence</a></h3>
+                Structure tensors are used in computer vision to measure the local 
+                similarity of gradient directions within a 2D image or 3D volume. 
+                These matrices are typically summarized into a scalar metric 
+                called the local coherence. Here I show how coherence is closely
+                tied to pixel-wise principal component analysis. 
+            </article> <br>
+            <article>
+                <h3><a href="blog/vae.html">Generative Sampling with Variational Autoencoders</a></h3>
+                Previously we derived the evidence lower bound (ELBO). The 
+                original variational autoencoder paper introduced a 
+                differentiable and unbiased estimator for the ELBO, and extends 
+                the idea of simple parametric forms to complex ones via 
+                feed-forward neural nets. We go through a complete walkthrough
+                of how the VAE model architecture is defined and trained.
+            </article> <br>
+            <article>
+                <h3><a href="blog/elbo.html">Latent Spaces and the ELBO</a></h3>
+                Derivation and several interpretations of the 
+                evidence lower bound (ELBO) used in variational inference.
+            </article> <br>
+            <article>
+                <h3><a href="blog/kl-divergence.html">Useful KL Divergence Results</a></h3>
+                The KL divergence of distribution $p$ from $q$ is a measure of 
+                dissimilarity, taken as the expectation of the log difference over the support of $p$.
+                It's used a lot in Bayesian inference (specifically, the divergence of a posterior $p$
+                from some prior $q$), so we're listing some properties and closed-form equations here.
+            </article> <br>
         </section>
 
-        <section id="contact">
-            <h3>Contact</h3>
+        <section id="Links">
+            <h2>Links</h2>
             <table>
                 <tr>
-                    <td>Email</td>
-                    <td><a href="mailto:foo@bar">litan.li3@gmail.com</a></td>
+                    <td><a href="mailto:litan.li3@gmail.com"><i class="fas fa-envelope"></i></a></td>
                 </tr>
                 <tr>
-                    <td>LinkedIn</td>
-                    <td><a href="https://www.linkedin.com/in/litanli/">litanli</a></td>
+                    <td><a href="https://www.linkedin.com/in/litanli"><i class="fab fa-linkedin"></i></a></td>
                 </tr>
                 <tr>
-                    <td>X</td>
-                    <td>
-                        <a href="https://www.twitter.com/litanli_">@litanli_</a>
-                    </td>
+                    <td><a href="https://www.x.com/litanli_"><i class="fab fa-x-twitter"></i></a></td>
+                </tr>
+                <tr>
+                    <td><a href="https://github.com/litanli"><i class="fab fa-github"></i></a></td>
                 </tr>
             </table>
         </section>
 
-        <section id="experiment">
-            <h3>Experience</h3>
+        <section id="about">
+            <h2>About</h2>
             <table>
-                
-                <tr>
-                    <td>2019 - Now</td>
-                    <td>SparkCognition</td>
+                <tr></tr>
+                    <td>Cognite, 2024 - Now</td>
                 </tr>
                 <tr>
-                    <td>2018 - 2019</td>
-                    <td>CognitiveScale</td>
+                    <td>Avathon, 2019 - 2024</td>
                 </tr>
-
                 <tr>
-                    <td>2024 - Now</td>
+                    <td>CognitiveScale, 2018 - 2019</td>
+                </tr>
+                <tr>
                     <td>MS Computer Science, UT Austin</td>
                 </tr>
                 <tr>
-                    <td>2015 - 2017</td>
                     <td>MS Petroleum Eng, UT Austin</td>
                 </tr>
                 <tr>
-                    <td>2010 - 2014</td>
                     <td>BS Chemical Eng, UT Austin</td>
                 </tr>
             </table>
         </section>
 
-        <section id="blog">
-            <h3>Blog</h3>
-            <a href="blog/arrival.html">Arrival</a><br><br>
-            <a href="blog/vae.html">Generative Modeling with Variational Autoencoders</a><br><br>
-            <a href="blog/elbo.html">Latent Spaces and the ELBO</a><br><br>
-            <a href="blog/kl-divergence.html">Useful KL Divergence Results</a><br><br>
-        </section>
-
+    </div>
         <footer>
-            <!-- TODO: last modified date, updated automatically -->
-            <p>Page generated on 07-2023 with <a href="https://katex.org/">KaTeX</a></p>
+            <p>Page generated on 06-2024 with <a href="https://katex.org/">KaTeX</a></p>
         </footer>
     </body>
 </html>
