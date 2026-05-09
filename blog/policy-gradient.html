@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="../style.css" />
+
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+        integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"
+        integrity="sha384-cpW21h6RZv/phavutF+AuVYrr+dA8xD9zs6FwLpaCct6O9ctzYFfFr4dgmgccOTx"
+        crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+        integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05"
+        crossorigin="anonymous"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            renderMathInElement(document.body, {
+                // auto-render specific keys
+                delimiters: [
+                    { left: '$$', right: '$$', display: true },
+                    { left: '$', right: '$', display: false },
+                    { left: '\\(', right: '\\)', display: false },
+                    { left: '\\[', right: '\\]', display: true },
+                    { left: "\\begin{equation}", right: "\\end{equation}", display: true },
+                    { left: "\\begin{equation*}", right: "\\end{equation*}", display: true },
+                    { left: "\\begin{align}", right: "\\end{align}", display: true },
+                    { left: "\\begin{align*}", right: "\\end{align*}", display: true },
+                    { left: "\\begin{gather}", right: "\\end{gather}", display: true },
+                    { left: "\\begin{CD}", right: "\\end{CD}", display: true },
+                ],
+                // rendering keys
+                throwOnError: false,
+                fleqn: true // display math renders flush left with a 2em left margin   
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <a class="button" href="../index.html">
+        <button>Home</button>
+    </a>
+
+    <section id="title">
+        <h1>The Policy Gradient Theorem, REINFORCE</h1>
+        <i>5/2026</i><br><br>
+    </section>
+
+    <hr>
+
+    <section id="intro">
+        <p>
+            In this post we'll derive the policy gradient theorem, which underpins modern-day RL post-training techniques such as REINFORCE, and in turn PPO and GRPO.
+        </p>
+    </section>
+    <hr>
+        <nav id="toc">
+            <h2>Contents</h2>
+            <ul>
+                <li><a href="#policy-gradient-methods">Policy Gradient Methods</a></li>
+                <li><a href="#policy-gradient-theorem">The Policy Gradient Theorem</a></li>
+            </ul>
+        </nav>
+    <hr>
+    <section>
+        <h2 id="policy-gradient-methods">Policy Gradient Methods</h2>
+        <p>
+            Under the Markov decision process (MDP) framework, an agent interacts with an environment 
+            at discrete timesteps $t=0,1,2, \dots, T-1$, forming a trajectory/episode/rollout across T timesteps:
+
+            \begin{align*}
+            S_0, A_0, R_1, S_1, A_1, R_2, ... S_{T-1}, A_{T-1}, R_T
+            \end{align*}
+
+            Namely at time t, the agent receives some representation of the environment's 
+            state $S_t \in \mathcal{S}$, which it uses to select an action 
+            $A_t \in \mathcal{A}(s)$. The agent receives a scalar reward 
+            $R_{t+1} \in \mathcal{R}$ as a result of taking action $A_t$, and 
+            transitions into a new state $S_{t+1}$. Assuming that the agent's 
+            goal is to maximize long-term rewards and borrowing the idea of NPVs
+            from finance, we normalize reward terms into a common unit of <i>present value</i> 
+            via a discount factor $\gamma \in [0, 1]$ before summing them to obtain the return at time $t$:
+
+            \begin{align*}
+            G_t = \sum_{k=0}^{T - t - 1} \gamma^k R_{t+k+1} = R_{t+1} + \gamma R_{t+2} + ... + \gamma^{T-t-1} R_T
+            \end{align*}
+            
+            A $\gamma$ of 1 treats all rewards as equal, whereas a lower discount favors short-term rewards.
+            E.g. $G_3$ represents the NPV of all future rewards obtained by the agent, starting from $S_3$.
+            We can then define a value function
+
+            \begin{align*}
+            v_\pi(s) \equiv E_\pi [G_t | S_t=s]
+            \end{align*}
+            
+            representing the value of a state $s$: the NPV starting from state $s$ and following some policy $\pi$ used for action 
+            selection at each step. And we can define an action-value function 
+
+            \begin{align*}
+            q_\pi(s, a) \equiv E_\pi [G_t | S_t=s, A_t=a]
+            \end{align*}
+
+            representing the NPV starting from state $s$, taking action $a$ (state-action pair $(s,a)$), and following policy $\pi$ thereafter.
+            Note that the former is just a weighted average of the latter, under policy $\pi$:
+            
+            \begin{align*}
+            v_\pi(s) = \sum_{a \in \mathcal{A}(s)} \pi(a|s) q_\pi(s, a)
+            \end{align*}
+
+            where $\pi(a|s)=Pr(A_t=a | S_t=s) \in [0, 1]$ is the probability of taking action $a$ in state $s$.
+            <br><br>
+
+            Up until now, $\pi$ can be any oracle that selects actions based on the current state, i.e. any
+            program, method, or function that map a current state to an action choice. Now suppose we have some parametric policy/policy model $\pi_\theta(s)$ with parameters $\theta \in \mathbb{R}^d$ as the action selector, and we want to find the optimal parameters $\theta^*$
+            that maximizes some scalar performance measure $J(\theta)$. We can define the policy model as a softmax over the possible actions
+
+            \begin{align*}
+            \pi(a|s, \theta) = \frac{e^{h(s, a, \theta)}}{\sum_{a' \in \mathcal{A}(s)} e^{h(s, a', \theta)}} \in [0, 1]
+            \end{align*}
+
+            where $h(s, a, \theta)$ is some transformer that maps a state-action pair $(s,a)$ and parameters $\theta$ to a scalar.
+            Then we simply perform gradient ascent on $J(\theta)$ (or AdamW, etc.) to approximate $\theta^* = \text{argmax}_\theta J(\theta)$:
+
+            \begin{align*}
+            \theta_{t+1} = \theta_t + \alpha \nabla_\theta J(\theta_t)
+            \end{align*}
+
+            where $\nabla_\theta J(\theta_t) \in \mathbb{R}^d$. All methods that follow this general approach of optimizing a parametric policy model via a scalar performance $J$ are
+            called policy gradient methods.
+
+
+        </p> <br>
+       
+    </section>
+    <hr>
+    <section>
+        <h2 id="policy-gradient-theorem">The Policy Gradient Theorem</h2>
+
+        Up until now, we've said that $J$ should be some scalar number (higher is better) and a function of the policy weights $\theta_t$. 
+        What should $J$ be?
+        
+    </section>
+    <hr>
+</body>
+</html>
